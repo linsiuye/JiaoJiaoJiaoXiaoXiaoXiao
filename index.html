@@ -328,7 +328,8 @@
             scoreAnimationCount: 0,
             animationFrameId: null,
             backgroundOffsetY: 2880,
-    
+            imageOpacity: 1, // 新增属性，用于管理图片透明度
+
             resizeCanvas() {
                 const scale = window.devicePixelRatio || 1;
                 canvas.style.width = '90vw';
@@ -337,7 +338,7 @@
                 canvas.height = 600 * scale;
                 ctx.scale(scale, scale);
             },
-    
+
             init() {
                 this.resizeCanvas();
                 window.addEventListener('resize', () => this.resizeCanvas());
@@ -345,7 +346,7 @@
                 this.spawnNewBlock();
                 this.gameLoop();
             },
-    
+
             createScoreAnimation(x, y, score) {
                 if (this.scoreAnimationCount < 5) {
                     y = canvas.height - 350;
@@ -354,7 +355,7 @@
                 } else {
                     y = y - 30;
                 }
-    
+
                 const animation = {
                     x: x,
                     y: y,
@@ -365,12 +366,12 @@
                 };
                 this.scoreAnimations.push(animation);
             },
-    
+
             updateScoreAnimations: function() {
                 const now = Date.now();
                 this.scoreAnimations.forEach(anim => {
                     const elapsed = now - anim.startTime;
-    
+
                     if (anim.state === 'fadeIn') {
                         anim.alpha = Math.min(1, elapsed / 200);
                         anim.y -= 1;
@@ -389,11 +390,11 @@
                         if (anim.alpha <= 0) anim.state = 'done';
                     }
                 });
-    
+
                 this.scoreAnimations = this.scoreAnimations.filter(anim =>
                     anim.state !== 'done'
                 );
-    
+
                 this.scoreAnimations.forEach(anim => {
                     ctx.save();
                     ctx.globalAlpha = anim.alpha;
@@ -404,10 +405,10 @@
                     ctx.restore();
                 });
             },
-    
+
             spawnNewBlock() {
                 if (this.gameOver) return;
-    
+
                 if (this.isFirstBlock) {
                     this.currentBlock = {
                         x: canvas.width / 2 - 51,
@@ -423,10 +424,10 @@
                     this.isFalling = false;
                     return;
                 }
-    
+
                 const prefixes = ['JiaoQiu', 'FeiXiao'];
                 const selectedPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    
+
                 this.currentBlock = {
                     x: canvas.width / 2 - this.blockSize / 2,
                     y: 0,
@@ -439,10 +440,10 @@
                 };
                 this.isFalling = false;
             },
-    
+
             drawBlock(block) {
                 if (block.y > canvas.height) return;
-    
+
                 let scaleX = 1;
                 let scaleY = 1;
                 if (block.squashStart) {
@@ -457,9 +458,10 @@
                     block.y + block.height / 2
                 );
                 ctx.scale(scaleX, scaleY);
-    
+
                 const img = images[block.image];
                 if (img.complete) {
+                    ctx.globalAlpha = this.imageOpacity; // 设置图片透明度
                     ctx.drawImage(
                         img,
                         -block.width / 2,
@@ -470,27 +472,27 @@
                 }
                 ctx.restore();
             },
-    
+
             update() {
                 if (this.gameOver || this.isFalling || this.isAnimating ||!this.currentBlock) return;
                 this.currentBlock.x += this.speed * this.currentBlock.direction;
-    
+
                 if (this.currentBlock.x <= 0 ||
                     this.currentBlock.x + this.blockSize >= canvas.width) {
                     this.currentBlock.direction *= -1;
                 }
             },
-    
+
             dropBlock() {
                 const self = this;
                 if (this.isFalling || this.gameOver || this.isAnimating ||!this.currentBlock) return;
                 this.isFalling = true;
-    
+
                 const fall = () => {
                     if (!self.currentBlock) return;
                     // 根据屏幕宽度调整下落速度
                     self.currentBlock.y += window.innerWidth < 500 ? 12 : 5; 
-    
+
                     const landedOnGround = self.currentBlock.y + self.blockSize >= self.baseHeight;
                     let landedOnLast = false;
                     let perfectLanding = false;
@@ -513,27 +515,27 @@
                     if ((this.stack.length === 0 && landedOnGround) || landedOnLast) {
                         let finalX = this.currentBlock.x + this.blockSize / 2;
                         let finalY = this.currentBlock.y;
-    
+
                         if (this.stack.length > 0) {
                             const lastBlock = this.stack[this.stack.length - 1];
                             const minX = lastBlock.x;
                             const maxX = lastBlock.x + lastBlock.width - this.blockSize;
                             finalX = Math.max(minX, Math.min(this.currentBlock.x, maxX)) + this.blockSize / 2;
                         }
-    
+
                         const landedBlock = {
                             ...this.currentBlock,
                             image: this.currentBlock.prefix === 'train' ? 'train' : `${this.currentBlock.prefix}_02`
                         };
-    
+
                         this.stack.push(landedBlock);
                         landedBlock.squashStart = Date.now();
-    
+
                         // 优化图片切换逻辑
                         const switchImageBack = () => {
                             landedBlock.image = landedBlock.prefix === 'train' ? 'train' : `${landedBlock.prefix}_01`;
                         };
-    
+
                         if (this.stack.length > 5) {
                             this.isAnimating = true;
                             const targetYDelta = this.blockSize;
@@ -565,7 +567,7 @@
                             // 在普通情况下切换图片
                             setTimeout(switchImageBack, 500);
                         }
-    
+
                         this.handleSuccess(perfectLanding, finalX, finalY);
                     } else if (landedOnGround) {
                         this.gameOver = true;
@@ -576,15 +578,15 @@
                 }
                 fall();
             },
-    
+
             handleSuccess(isPerfect, finalX, finalY) {
                 const landedBlock = this.stack[this.stack.length - 1];
                 landedBlock.squashStart = Date.now();
-    
+
                 setTimeout(() => {
                     delete landedBlock.squashStart;
                 }, this.squashDuration + 100);
-    
+
                 if (this.stack.length > 5) {
                     this.isAnimating = true;
                     const targetYDelta = this.blockSize;
@@ -612,26 +614,26 @@
                 } else {
                     this.spawnNewBlock();
                 }
-    
+
                 score += isPerfect ? 20 : 10;
-    
+
                 if (!isMuted) {
                     audio.collision.currentTime = 0;
                     audio.collision.play().catch(e => console.error("音效播放失败:", e));
                 }
-    
+
                 this.createScoreAnimation(
                     finalX,
                     finalY - 30,
                     isPerfect ? 20 : 10
                 );
                 document.getElementById('score').textContent = score;
-    
+
                 if (isPerfect) {
                     const canvasRect = canvas.getBoundingClientRect();
                     const scaleX = canvas.width / canvasRect.width;
                     const scaleY = canvas.height / canvasRect.height;
-    
+
                     ctx.fillStyle = 'gold';
                     ctx.beginPath();
                     ctx.arc(
@@ -643,7 +645,7 @@
                     ctx.fill();
                 }
             },
-    
+
             endGame() {
                 if (score > highScore) {
                     highScore = score;
@@ -659,7 +661,7 @@
                 }
                 this.gameOver = true;
             },
-    
+
             reset() {
                 if (this.animationFrameId !== null) {
                     cancelAnimationFrame(this.animationFrameId);
@@ -680,12 +682,13 @@
                 this.speed = window.innerWidth < 500 ? 5.5 : 1.5; 
                 this.isFalling = false;
                 this.backgroundOffsetY = 2880;
+                this.imageOpacity = 1; // 重置图片透明度
                 if (!isMuted && audio.bgm.paused) {
                     audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
                 }
                 this.gameLoop();
             },
-    
+
             gameLoop() {
                 if (this.gameOver) {
                     this.gameLoopRunning = false;
@@ -701,7 +704,7 @@
                     this.drawBlock(this.currentBlock);
                 }
                 this.updateScoreAnimations();
-    
+
                 if (!this.gameOver) {
                     this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
                 }
