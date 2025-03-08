@@ -496,7 +496,7 @@
                 const fall = () => {
                     if (!self.currentBlock) return;
                     // 根据屏幕宽度调整下落速度，减慢 2.5 倍
-                    self.currentBlock.y += (window.innerWidth < 500 ? 12 : 5) / 2.5; 
+                    self.currentBlock.y += (window.innerWidth < 500 ? 12 : 5) / 2; 
 
                     const landedOnGround = self.currentBlock.y + self.blockSize >= self.baseHeight;
                     let landedOnLast = false;
@@ -607,15 +607,16 @@
                     const scaleX = canvas.width / canvasRect.width;
                     const scaleY = canvas.height / canvasRect.height;
 
-                    ctx.fillStyle = 'gold';
-                    ctx.beginPath();
-                    ctx.arc(
-                        (finalX - canvasRect.left) * scaleX,
-                        (finalY - canvasRect.top) * scaleY,
-                        8 * window.devicePixelRatio,
-                        0, Math.PI * 2
-                    );
-                    ctx.fill();
+                    // 避免黄点闪现，注释掉绘制黄点的代码
+                    // ctx.fillStyle = 'gold';
+                    // ctx.beginPath();
+                    // ctx.arc(
+                    //     (finalX - canvasRect.left) * scaleX,
+                    //     (finalY - canvasRect.top) * scaleY,
+                    //     8 * window.devicePixelRatio,
+                    //     0, Math.PI * 2
+                    // );
+                    // ctx.fill();
                 }
             },
 
