@@ -586,8 +586,9 @@
                         let allDone = true;
                         this.stack.forEach(block => {
                             const targetY = block.originalY + targetYDelta;
+                            // 增大每次移动的距离，这里将原来的 3 改为 5，可根据需求调整
                             if (block.y < targetY) {
-                                block.y = Math.min(targetY, block.y + 3);
+                                block.y = Math.min(targetY, block.y + 5); 
                                 allDone = false;
                             }
                         });
