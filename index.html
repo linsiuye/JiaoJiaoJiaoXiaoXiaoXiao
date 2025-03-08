@@ -7,15 +7,20 @@
     <style>
         body {
             background: linear-gradient(to bottom, #F6E4EA, #EBEFF5);
-            margin: 0;
-            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             min-height: 100vh;
-            overflow-y: auto; /* 允许垂直滚动 */
+            margin: 0;
+            padding: 20px 0;
+            box-sizing: border-box;
+            position: relative;
+            overflow-y: auto;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* 让内容从顶部开始排列 */
+            align-items: flex-start;
         }
-    
+
         /* 定义四角星样式 */
         .star {
             position: absolute;
@@ -25,7 +30,7 @@
             border-radius: 50%;
             animation: twinkle 1.5s infinite;
         }
-    
+
         @keyframes twinkle {
             0% {
                 opacity: 0.2;
@@ -37,32 +42,35 @@
                 opacity: 0.2;
             }
         }
-    
+
         .container {
             background: linear-gradient(to bottom, #F6E4EA, #EBEFF5);
             padding: 20px;
             border-radius: 12px;
-            width: 90%; /* 容器宽度为屏幕宽度的 90% */
-            max-width: 480px; /* 最大宽度为 480px */
-            box-sizing: border-box;
-            margin: 20px 0; /* 上下外边距为 20px */
+            max-width: 480px;
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            transform-origin: center top;
+            transform: scale(min(1, calc(100vw / 500px)));
+            margin: 0 auto;
         }
-    
-        /* 当屏幕宽度超过 500px 时，不再缩放 */
+
         @media (min-width: 501px) {
             .container {
-                transform: scale(0.9); /* 将容器内元素缩放为原来的 90% */
+                transform: none;
             }
         }
-    
-        /* 小屏幕样式调整（手机端） */
+
         @media (max-width: 480px) {
             body {
-                padding: 10px; /* 手机端添加内边距 */
+                padding: 10px;
             }
             .container {
-                padding: 15px; /* 减少容器内边距 */
-                margin: 10px 0; /* 减少容器外边距 */
+                padding: 15px;
+                margin: 10px auto;
             }
             .info {
                 font-size: 14px;
@@ -81,19 +89,63 @@
                 font-size: 0.3em;
             }
         }
-    
-        /* 后续样式保持不变 */
-        /* ... 其他样式 ... */
-    
-        /* 按钮组样式 */
+
+        .title-logo {
+            max-width: 50%;
+            margin-bottom: 15px;
+            align-self: flex-start;
+            margin-left: 20px; 
+        }
+
+        .info-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            position: absolute;
+            top: 40px;
+            right: 20px;
+        }
+
+        .info {
+            font-size: 18px;
+            font-family: 'Arial Rounded MT Bold', Arial;
+            color: #B9594C;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 6px 15px;
+            text-align: left;
+            margin-left: -150px;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .info:first-child::before {
+            content: "得分：";
+            color: #B9594C;
+        }
+
+        .info:last-child::before {
+            content: "最高分：";
+            color: #75BCC3;
+        }
+
+        .info #score,
+        .info #highscore {
+            margin-left: 0;
+            content: "";
+        }
+
+        .info #highscore {
+            color: #75BCC3;
+        }
+
         .button-group {
             display: flex;
             gap: 15px;
             justify-content: center;
             margin-top: 25px;
         }
-    
-        /* 重启按钮样式 */
+
         #restartButton {
             background: #B9594C;
             color: white;
@@ -105,8 +157,7 @@
             transition: all 0.2s ease;
             box-shadow: 0 2px 6px rgba(185, 89, 76, 0.3);
         }
-    
-        /* 静音按钮样式 */
+
         #muteButton {
             background: #75BCC3;
             color: white;
@@ -118,35 +169,31 @@
             transition: all 0.2s ease;
             box-shadow: 0 2px 6px rgba(117, 188, 195, 0.3);
         }
-    
-        /* 按钮悬停效果 */
+
         #restartButton:hover,
         #muteButton:hover {
             transform: translateY(-2px);
             opacity: 0.9;
         }
-    
-        /* 按钮点击效果 */
+
         #restartButton:active,
         #muteButton:active {
             transform: translateY(0);
             opacity: 1;
         }
-    
-        /* 画布样式 */
+
         canvas {
             border: 3px solid #B9594C;
             border-radius: 8px;
             background: #fff;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 100%; /* 画布宽度为容器宽度的 100% */
+            width: 90vw !important;
+            height: 135vw !important;
             max-width: 400px;
-            height: auto; /* 高度自适应 */
-            aspect-ratio: 2 / 3; /* 保持 2:3 的宽高比 */
+            max-height: 600px;
             touch-action: none;
         }
-    
-        /* 游戏结束弹窗样式 */
+
         .game-over {
             position: absolute;
             top: 50%;
@@ -163,31 +210,26 @@
             font-size: 18px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
-    
-        /* 游戏结束总分标签样式 */
+
         .game-over .total-score-label {
             margin-bottom: 5px;
         }
-    
-        /* 游戏结束总分数字样式 */
+
         .game-over .total-score {
             font-size: 32px;
             color: #B9594C;
             font-weight: 900;
             margin-bottom: 15px;
         }
-    
-        /* 游戏结束总分标签样式 */
+
         .game-over .total-score-label {
             font-weight: 900;
         }
-    
-        /* 游戏结束继续提示样式 */
+
         .game-over .continue-text {
             font-weight: 900;
         }
-    
-        /* 游戏结束表情文字样式 */
+
         .game-over .emoji-text {
             font-weight: 900;
             font-size: 0.4em;
@@ -195,8 +237,7 @@
             opacity: 0.9;
             line-height: 1.2;
         }
-    
-        /* 游戏结束弹窗按钮样式 */
+
         .game-over button {
             background: #B9594C;
             color: white;
@@ -209,14 +250,12 @@
             transition: all 0.2s ease;
             font-weight: 900;
         }
-    
-        /* 游戏结束弹窗按钮悬停效果 */
+
         .game-over button:hover {
             transform: translateY(-2px);
             opacity: 0.9;
         }
-    
-        /* 游戏结束弹窗子元素样式 */
+
         .game-over div {
             line-height: 1.3;
             margin: 8px 0;
@@ -228,14 +267,10 @@
     <div class="container">
         <img class="title-logo" src="title.png" alt="游戏标题">
         <div class="info-container">
-            <!-- 移除“得分：”文字 -->
             <div class="info"><span id="score">0</span></div>
-            <!-- 移除“最高分：”文字 -->
             <div class="info"><span id="highscore">0</span></div>
         </div>
-        <!-- 新增游戏结束提示 -->
         <div class="game-over" id="gameOver">
-            <!-- 显示当前游戏总分 -->
             <div class="total-score-label">当前游戏总分</div>
             <div class="total-score" id="gameOverScore">0</div>
             <div class="continue-text">继续加油</div>
@@ -260,7 +295,6 @@
         audio.bgm.loop = true;
         let isMuted = false;
 
-        // 预加载图片资源
         const images = {
             JiaoQiu_01: new Image(),
             JiaoQiu_02: new Image(),
@@ -287,37 +321,25 @@
             isAnimating: false,
             baseHeight: 600,
             squashDuration: 200,
-            // 形变动画持续时间（毫秒）
             validAreaRatio: 0.5,
-            // 有效区域比例(50%)
             perfectThreshold: 10,
-            // 完美判定阈值(10px)
             scoreAnimations: [],
-            // 得分动画数组
             scoreAnimationCount: 0,
             animationFrameId: null,
             backgroundOffsetY: 2880,
-            // 背景图片初始偏移量
 
             resizeCanvas() {
                 const scale = window.devicePixelRatio || 1;
                 canvas.style.width = '90vw';
-                // 可视宽度
                 canvas.style.height = '135vw';
-                // 保持3:2宽高比
                 canvas.width = 400 * scale;
-                // 逻辑像素×设备像素比
                 canvas.height = 600 * scale;
-                // 400×2=800（Retina屏）
                 ctx.scale(scale, scale);
-                // 使绘图操作自动适配物理像素
             },
 
             init() {
                 this.resizeCanvas();
-                // 初始化时执行一次
                 window.addEventListener('resize', () => this.resizeCanvas());
-                // 窗口变化时重新适配
                 document.getElementById('highscore').textContent = highScore;
                 this.spawnNewBlock();
                 this.gameLoop();
@@ -326,12 +348,10 @@
             createScoreAnimation(x, y, score) {
                 if (this.scoreAnimationCount < 5) {
                     y = canvas.height - 350;
-                    // 固定在画布底部
                     isSpecial = true;
                     this.scoreAnimationCount++;
                 } else {
                     y = y - 30;
-                    // 正常位置
                 }
 
                 const animation = {
@@ -403,7 +423,6 @@
                     return;
                 }
 
-                // 随机选择前缀并添加01后缀
                 const prefixes = ['JiaoQiu', 'FeiXiao'];
                 const selectedPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
 
@@ -423,18 +442,14 @@
             drawBlock(block) {
                 if (block.y > canvas.height) return;
 
-                // 形变动画计算
                 let scaleX = 1;
                 let scaleY = 1;
                 if (block.squashStart) {
                     const progress = Math.min(1, (Date.now() - block.squashStart) / this.squashDuration);
-
-                    // 压扁曲线：快速压扁然后缓慢恢复
                     const squash = Math.sin(progress * Math.PI);
                     scaleX = 1 + squash * 0.2;
                     scaleY = 1 - squash * 0.3;
                 }
-                // 应用形变
                 ctx.save();
                 ctx.translate(
                     block.x + block.width / 2,
@@ -456,7 +471,6 @@
             },
 
             update() {
-                // 检查 this.currentBlock 是否为 null 或 undefined
                 if (this.gameOver || this.isFalling || this.isAnimating ||!this.currentBlock) return;
                 this.currentBlock.x += this.speed * this.currentBlock.direction;
 
@@ -468,11 +482,11 @@
 
             dropBlock() {
                 const self = this;
-                if (this.isFalling || this.gameOver || this.isAnimating ||!this.currentBlock) return; // 添加对 currentBlock 的检查
+                if (this.isFalling || this.gameOver || this.isAnimating ||!this.currentBlock) return;
                 this.isFalling = true;
 
                 const fall = () => {
-                    if (!self.currentBlock) return; // 再次检查 currentBlock 是否为 null
+                    if (!self.currentBlock) return;
                     self.currentBlock.y += 5;
 
                     const landedOnGround = self.currentBlock.y + self.blockSize >= self.baseHeight;
@@ -495,8 +509,6 @@
                         perfectLanding = centerDiff < self.perfectThreshold;
                     }
                     if ((this.stack.length === 0 && landedOnGround) || landedOnLast) {
-                        // 创建独立对象用于堆栈存储
-                        // 计算最终着陆位置
                         let finalX = this.currentBlock.x + this.blockSize / 2;
                         let finalY = this.currentBlock.y;
 
@@ -517,8 +529,6 @@
                             landedBlock.image = landedBlock.prefix === 'train' ? 'train' : `${landedBlock.prefix}_01`;
                         }, 500);
                         this.handleSuccess(perfectLanding, finalX, finalY);
-                        // Y位置
-
                     } else if (landedOnGround) {
                         this.gameOver = true;
                         this.endGame();
@@ -530,16 +540,13 @@
             },
 
             handleSuccess(isPerfect, finalX, finalY) {
-                // 在成功着陆时触发形变动画
                 const landedBlock = this.stack[this.stack.length - 1];
                 landedBlock.squashStart = Date.now();
 
-                // 1秒后清除动画标记（防止内存泄漏）
                 setTimeout(() => {
                     delete landedBlock.squashStart;
                 }, this.squashDuration + 100);
 
-                // 保持原有逻辑，但移除对图片状态的修改
                 if (this.stack.length > 5) {
                     this.isAnimating = true;
                     const targetYDelta = this.blockSize;
@@ -557,7 +564,6 @@
                         } else {
                             this.isAnimating = false;
                             this.spawnNewBlock();
-                            // 移动背景图片
                             if (this.backgroundOffsetY > 0) {
                                 this.backgroundOffsetY = Math.max(0, this.backgroundOffsetY - 5);
                             }
@@ -578,9 +584,7 @@
 
                 this.createScoreAnimation(
                     finalX,
-                    // 使用修正后的X中心坐标
                     finalY - 30,
-                    // 使用修正后的Y坐标并上移30px
                     isPerfect ? 20 : 10
                 );
                 document.getElementById('score').textContent = score;
@@ -608,11 +612,9 @@
                     localStorage.setItem('blockHighScore', highScore);
                     document.getElementById('highscore').textContent = highScore;
                 }
-                // 直接将当前得分赋值给游戏结束弹窗里的总分显示元素
                 document.getElementById('gameOverScore').textContent = score;
                 const gameOverElement = document.getElementById('gameOver');
                 gameOverElement.style.display = 'block';
-                // 停止游戏循环
                 if (this.animationFrameId) {
                     cancelAnimationFrame(this.animationFrameId);
                     this.animationFrameId = null;
@@ -635,18 +637,14 @@
                 this.baseHeight = 600;
                 this.scoreAnimationCount = 0;
                 this.gameLoopRunning = true;
-                // 确保标记为运行中
                 this.spawnNewBlock();
-                // 此时不会因gameLoopRunning检查失败
                 this.speed = 1.5;
                 this.isFalling = false;
                 this.backgroundOffsetY = 2880;
-                // 重置背景图片偏移量
                 if (!isMuted && audio.bgm.paused) {
                     audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
                 }
                 this.gameLoop();
-                // 统一启动循环
             },
 
             gameLoop() {
@@ -655,12 +653,10 @@
                     return;
                 }
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                // 绘制背景图片
                 if (images.background.complete) {
                     ctx.drawImage(images.background, 0, -this.backgroundOffsetY);
                 }
                 this.stack.forEach(b => this.drawBlock(b));
-                // 检查 this.currentBlock 是否为 null 或 undefined
                 if (this.currentBlock) {
                     this.update();
                     this.drawBlock(this.currentBlock);
@@ -673,7 +669,6 @@
             }
         }
 
-        // 确保图片加载完成
         Promise.all(Object.values(images).map(img => {
             return new Promise(resolve => {
                 if (img.complete) resolve();
@@ -682,7 +677,6 @@
         }))
            .then(() => {
                 document.getElementById('highscore').textContent = highScore;
-                // 图片加载完成后开始绘制背景
                 game.gameLoop();
             });
 
