@@ -5,285 +5,280 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>椒霄叠叠乐·貊泽别凹小游戏了4.0</title>
     <style>
-        body {
-            /* 添加渐变背景 */
-            background: linear-gradient(to bottom, #F6E4EA, #EBEFF5);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-            position: relative;
-            overflow: hidden;
-        }
+    body {
+        /* 添加渐变背景 */
+        background: linear-gradient(to bottom, #F6E4EA, #EBEFF5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        box-sizing: border-box;
+        position: relative;
+        overflow-y: auto; /* 允许垂直滚动 */
+    }
 
-        /* 定义四角星样式 */
-        .star {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle 1.5s infinite;
-        }
+    /* 定义四角星样式 */
+    .star {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        background: white;
+        border-radius: 50%;
+        animation: twinkle 1.5s infinite;
+    }
 
-        @keyframes twinkle {
-            0% {
-                opacity: 0.2;
-            }
-            50% {
-                opacity: 1;
-            }
-            100% {
-                opacity: 0.2;
-            }
+    @keyframes twinkle {
+        0% {
+            opacity: 0.2;
         }
-
-        /* 其他样式保持不变 */
-        .container {
-            background: linear-gradient(to bottom, #F6E4EA, #EBEFF5);
-            padding: 20px;
-            border-radius: 12px;
-            max-width: 480px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            transform-origin: center top;
-            transform: scale(calc(100vw / 500px));
-            /* 基于500px设计稿缩放 */
-            margin: 20px 0;
-        }
-
-        @media (max-width: 320px) {
-            .container {
-                transform: scale(0.85);
-            }
-        }
-
-        @media (min-width: 501px) {
-            .container {
-                transform: none;
-                /* PC端保持原尺寸 */
-            }
-        }
-
-        .title-logo {
-            max-width: 50%;
-            margin-bottom: 15px;
-            align-self: flex-start;
-            /* 新增：将 logo 向右移动 10px */
-            margin-left: 20px; 
-        }
-
-        .info-container {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            position: absolute;
-            top: 40px;
-            right: 20px;
-        }
-
-        .info {
-            font-size: 18px;
-            /* 调整字号 */
-            font-family: 'Arial Rounded MT Bold', Arial;
-            color: #B9594C;
-            background: rgba(255, 255, 255, 0.3); /* 增添透明底为0.3的白色背景 */
-            border-radius: 8px; /* 圆角 */
-            padding: 6px 15px;
-            text-align: left;
-            margin-left: -150px; /* 整体向左移动5px */
-            border-radius: 8px;
-            text-align: left; /* 修改为左端对齐 */
-        }
-
-        /* 新增：设置“得分：”文字颜色 */
-        .info:first-child::before {
-            content: "得分：";
-            color: #B9594C;
-        }
-
-        /* 新增：设置“最高分：”文字颜色 */
-        .info:last-child::before {
-            content: "最高分：";
-            color: #75BCC3;
-        }
-
-        /* 移除原有的“得分：”和“最高分：”文字 */
-        .info #score,
-        .info #highscore {
-            /* 修改此处，移除多余文字 */
-            margin-left: 0; 
-            content: "";
-        }
-
-        .info #highscore {
-            color: #75BCC3;
-            /* 修改最高分字色 */
-        }
-
-        .button-group {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 25px;
-            /* 移动到画布下方 */
-        }
-
-        #restartButton {
-            background: #B9594C;
-            color: white;
-            padding: 12px 30px;
-            font-size: 18px;
-            border-radius: 25px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 6px rgba(185, 89, 76, 0.3);
-        }
-
-        #muteButton {
-            background: #75BCC3;
-            color: white;
-            padding: 12px 30px;
-            font-size: 18px;
-            border-radius: 25px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 6px rgba(117, 188, 195, 0.3);
-        }
-
-        #restartButton:hover,
-        #muteButton:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
-        }
-
-        #restartButton:active,
-        #muteButton:active {
-            transform: translateY(0);
+        50% {
             opacity: 1;
         }
+        100% {
+            opacity: 0.2;
+        }
+    }
 
-        canvas {
-            border: 3px solid #B9594C;
-            border-radius: 8px;
-            background: #fff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 90vw !important;
-            height: 135vw !important;
-            /* 保持3:2宽高比 */
-            max-width: 400px;
-            max-height: 600px;
-            touch-action: none;
-            /* 阻止默认触摸行为 */
+    /* 其他样式保持不变 */
+    .container {
+        background: linear-gradient(to bottom, #F6E4EA, #EBEFF5);
+        padding: 20px;
+        border-radius: 12px;
+        max-width: 480px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        transform-origin: center top;
+        /* 根据屏幕宽度调整缩放比例 */
+        transform: scale(min(1, calc(100vw / 500px))); 
+        margin: 20px 0;
+    }
+
+    /* 移除原有的小屏幕缩放规则 */
+    /* @media (max-width: 320px) {
+        .container {
+            transform: scale(0.8);
+        }
+    } */
+
+    /* 当屏幕宽度超过 500px 时，不再缩放 */
+    @media (min-width: 501px) {
+        .container {
+            transform: none;
+        }
+    }
+
+    /* 后续样式保持不变 */
+    .title-logo {
+        max-width: 50%;
+        margin-bottom: 15px;
+        align-self: flex-start;
+        /* 新增：将 logo 向右移动 10px */
+        margin-left: 20px; 
+    }
+
+    .info-container {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        position: absolute;
+        top: 40px;
+        right: 20px;
+    }
+
+    .info {
+        font-size: 16px; /* 调整字号 */
+        font-family: 'Arial Rounded MT Bold', Arial;
+        color: #B9594C;
+        background: rgba(255, 255, 255, 0.3); /* 增添透明底为0.3的白色背景 */
+        border-radius: 8px; /* 圆角 */
+        padding: 4px 12px; /* 调整内边距 */
+        text-align: left;
+        margin-left: -150px; /* 整体向左移动5px */
+        border-radius: 8px;
+        text-align: left; /* 修改为左端对齐 */
+    }
+
+    /* 新增：设置“得分：”文字颜色 */
+    .info:first-child::before {
+        content: "得分：";
+        color: #B9594C;
+    }
+
+    /* 新增：设置“最高分：”文字颜色 */
+    .info:last-child::before {
+        content: "最高分：";
+        color: #75BCC3;
+    }
+
+    /* 移除原有的“得分：”和“最高分：”文字 */
+    .info #score,
+    .info #highscore {
+        /* 修改此处，移除多余文字 */
+        margin-left: 0; 
+        content: "";
+    }
+
+    .info #highscore {
+        color: #75BCC3;
+        /* 修改最高分字色 */
+    }
+
+    .button-group {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 25px;
+        /* 移动到画布下方 */
+    }
+
+    #restartButton {
+        background: #B9594C;
+        color: white;
+        padding: 10px 25px; /* 调整按钮内边距 */
+        font-size: 16px; /* 调整按钮文字大小 */
+        border-radius: 25px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 6px rgba(185, 89, 76, 0.3);
+    }
+
+    #muteButton {
+        background: #75BCC3;
+        color: white;
+        padding: 10px 25px; /* 调整按钮内边距 */
+        font-size: 16px; /* 调整按钮文字大小 */
+        border-radius: 25px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 6px rgba(117, 188, 195, 0.3);
+    }
+
+    #restartButton:hover,
+    #muteButton:hover {
+        transform: translateY(-2px);
+        opacity: 0.9;
+    }
+
+    #restartButton:active,
+    #muteButton:active {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    canvas {
+        border: 3px solid #B9594C;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        width: 90vw !important;
+        height: 135vw !important;
+        /* 保持3:2宽高比 */
+        max-width: 400px;
+        max-height: 600px;
+        touch-action: none;
+        /* 阻止默认触摸行为 */
+    }
+
+    .game-over {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        color: #75BCC3;
+        padding: 15px 25px; /* 调整内边距 */
+        border-radius: 15px;
+        text-align: center;
+        display: none;
+        z-index: 100;
+        font-size: 18px; /* 整体缩小字体 */
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .game-over .total-score-label {
+        margin-bottom: 5px;
+        /* 调整间距 */
+    }
+
+    .game-over .total-score {
+        font-size: 32px; /* 调整总分数字大小 */
+        color: #B9594C;
+        font-weight: 900; /* 更粗的字体 */
+        margin-bottom: 15px;
+    }
+
+    .game-over .total-score-label {
+        font-weight: 900; /* 更粗的字体 */
+    }
+
+    .game-over .continue-text {
+        font-weight: 900; /* 更粗的字体 */
+    }
+
+    .game-over .emoji-text {
+        font-weight: 900; /* 更粗的字体 */
+        font-size: 0.4em; /* 调整表情文字大小 */
+        margin: 5px 0;
+        opacity: 0.9;
+        line-height: 1.2;
+    }
+
+    .game-over button {
+        background: #B9594C;
+        color: white;
+        border: none;
+        padding: 8px 20px; /* 缩小按钮 */
+        border-radius: 25px;
+        margin-top: 15px;
+        /* 下移按钮 */
+        font-size: 14px; /* 缩小按钮文字 */
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 900; /* 更粗的字体 */
+    }
+
+    .game-over button:hover {
+        transform: translateY(-2px);
+        opacity: 0.9;
+    }
+
+    .game-over div {
+        line-height: 1.3;
+        margin: 8px 0;
+    }
+
+    @media (max-width: 480px) {
+        .info {
+            font-size: 14px;
+            /* 调整字号 */
+            padding: 3px 10px;
+            /* 调整内边距 */
+        }
+
+        #restartButton,
+        #muteButton {
+            padding: 8px 20px;
+            font-size: 14px;
         }
 
         .game-over {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            color: #75BCC3;
-            padding: 20px 30px;
-            border-radius: 15px;
-            text-align: center;
-            display: none;
-            z-index: 100;
-            font-size: 20px;
-            /* 整体缩小字体 */
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        }
-
-        .game-over .total-score-label {
-            margin-bottom: 5px;
-            /* 调整间距 */
-        }
-
-        .game-over .total-score {
-            font-size: 36px;
-            color: #B9594C;
-            font-weight: 900; /* 更粗的字体 */
-            margin-bottom: 15px;
-        }
-
-        .game-over .total-score-label {
-            font-weight: 900; /* 更粗的字体 */
-        }
-
-        .game-over .continue-text {
-            font-weight: 900; /* 更粗的字体 */
-        }
-
-        .game-over .emoji-text {
-            font-weight: 900; /* 更粗的字体 */
-        }
-
-        .game-over button {
-            background: #B9594C;
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            /* 缩小按钮 */
-            border-radius: 25px;
-            margin-top: 15px;
-            /* 下移按钮 */
             font-size: 16px;
-            /* 缩小按钮文字 */
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: 900; /* 更粗的字体 */
-        }
-
-        .game-over button:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
-        }
-
-        .game-over div {
-            line-height: 1.3;
-            margin: 8px 0;
+            padding: 12px 20px;
         }
 
         .game-over .emoji-text {
-            font-size: 0.5em;
-            margin: 5px 0;
-            opacity: 0.9;
-            line-height: 1.2;
+            font-size: 0.3em;
         }
-
-        @media (max-width: 480px) {
-            .info {
-                font-size: 16px;
-                /* 调整字号 */
-                padding: 4px 12px;
-                /* 调整内边距 */
-            }
-
-            #restartButton,
-            #muteButton {
-                padding: 10px 25px;
-                font-size: 16px;
-            }
-
-            .game-over {
-                font-size: 20px;
-                padding: 15px 25px;
-            }
-
-            .game-over .emoji-text {
-                font-size: 0.4em;
-            }
-        }
-    </style>
+    }
+</style>
 </head>
 
 <body>
