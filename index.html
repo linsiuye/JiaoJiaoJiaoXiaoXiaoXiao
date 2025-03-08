@@ -495,8 +495,8 @@
 
                 const fall = () => {
                     if (!self.currentBlock) return;
-                    // 根据屏幕宽度调整下落速度
-                    self.currentBlock.y += window.innerWidth < 500 ? 12 : 5; 
+                    // 根据屏幕宽度调整下落速度，减慢 2.5 倍
+                    self.currentBlock.y += (window.innerWidth < 500 ? 12 : 5) / 2.5; 
 
                     const landedOnGround = self.currentBlock.y + self.blockSize >= self.baseHeight;
                     let landedOnLast = false;
