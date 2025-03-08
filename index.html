@@ -13,7 +13,7 @@
         align-items: center;
         min-height: 100vh;
         margin: 0;
-        padding: 20px;
+        padding: 20px 0; /* 调整内边距，上下 20px，左右 0 */
         box-sizing: border-box;
         position: relative;
         overflow-y: auto; /* 允许垂直滚动 */
@@ -41,34 +41,52 @@
         }
     }
 
-    /* 其他样式保持不变 */
     .container {
         background: linear-gradient(to bottom, #F6E4EA, #EBEFF5);
         padding: 20px;
         border-radius: 12px;
         max-width: 480px;
-        width: 100%;
+        width: 90%; /* 调整容器宽度 */
         display: flex;
         flex-direction: column;
         align-items: center;
         position: relative;
         transform-origin: center top;
-        /* 根据屏幕宽度调整缩放比例 */
         transform: scale(min(1, calc(100vw / 500px))); 
-        margin: 20px 0;
+        margin: 0 auto; /* 上下外边距 0，水平居中 */
     }
-
-    /* 移除原有的小屏幕缩放规则 */
-    /* @media (max-width: 320px) {
-        .container {
-            transform: scale(0.8);
-        }
-    } */
 
     /* 当屏幕宽度超过 500px 时，不再缩放 */
     @media (min-width: 501px) {
         .container {
             transform: none;
+        }
+    }
+
+    /* 小屏幕样式调整（手机端） */
+    @media (max-width: 480px) {
+        body {
+            padding: 10px; /* 手机端添加内边距 */
+        }
+        .container {
+            padding: 15px; /* 减少容器内边距 */
+            margin: 10px auto; /* 减少容器外边距 */
+        }
+        .info {
+            font-size: 14px;
+            padding: 3px 10px;
+        }
+        #restartButton,
+        #muteButton {
+            padding: 8px 20px;
+            font-size: 14px;
+        }
+        .game-over {
+            font-size: 16px;
+            padding: 12px 20px;
+        }
+        .game-over .emoji-text {
+            font-size: 0.3em;
         }
     }
 
