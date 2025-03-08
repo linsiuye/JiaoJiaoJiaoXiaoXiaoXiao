@@ -582,10 +582,17 @@
             handleSuccess(isPerfect, finalX, finalY) {
                 const landedBlock = this.stack[this.stack.length - 1];
                 landedBlock.squashStart = Date.now();
-                this.imageOpacity = 0.5; 
+
+                // 仅针对后缀为 _01 的图片调整透明度
+                if (landedBlock.image.includes('_01')) {
+                    this.imageOpacity = 0.5; 
+                }
+
                 setTimeout(() => {
+                    if (landedBlock.image.includes('_01')) {
+                        this.imageOpacity = 1; 
+                    }
                     delete landedBlock.squashStart;
-                    this.imageOpacity = 1;     
                 }, this.squashDuration + 100);
 
                 if (this.stack.length > 5) {
