@@ -462,6 +462,7 @@
                 const img = images[block.image];
                 if (img.complete) {
                     ctx.globalAlpha = this.imageOpacity; // 设置图片透明度
+                    ctx.clearRect(-block.width / 2, -block.height / 2, block.width, block.height); // 清除当前方块位置的内容
                     ctx.drawImage(
                         img,
                         -block.width / 2,
@@ -541,6 +542,7 @@
                         this.gameOver = true;
                         this.endGame();
                     } else {
+                        ctx.clearRect(self.currentBlock.x, self.currentBlock.y, self.blockSize, self.blockSize); // 清除下落方块之前的位置
                         requestAnimationFrame(fall);
                     }
                 }
@@ -568,6 +570,7 @@
                         this.stack.forEach(block => {
                             const targetY = block.originalY + targetYDelta;
                             if (block.y < targetY) {
+                                ctx.clearRect(block.x, block.y, block.width, block.height); // 清除方块移动前的位置
                                 block.y = Math.min(targetY, block.y + 3);
                                 allDone = false;
                             }
