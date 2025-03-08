@@ -488,6 +488,11 @@
                 if (this.isFalling || this.gameOver || this.isAnimating ||!this.currentBlock) return;
                 this.isFalling = true;
 
+                // 下落过程中切换为 _02 图片
+                if (this.currentBlock.prefix!== 'train') {
+                    this.currentBlock.image = `${this.currentBlock.prefix}_02`;
+                }
+
                 const fall = () => {
                     if (!self.currentBlock) return;
                     // 根据屏幕宽度调整下落速度
@@ -531,48 +536,6 @@
                         this.stack.push(landedBlock);
                         landedBlock.squashStart = Date.now();
 
-                        // 优化图片切换逻辑
-                        const switchImageBack = () => {
-                            landedBlock.image = landedBlock.prefix === 'train' ? 'train' : `${landedBlock.prefix}_01`;
-                        };
-
-                        if (this.stack.length > 5) {
-                            this.isAnimating = true;
-                            const targetYDelta = this.blockSize;
-                            const animate = () => {
-                                let allDone = true;
-                                this.stack.forEach(block => {
-                                    const targetY = block.originalY + targetYDelta;
-                                    if (block.y < targetY) {
-                                        block.y = Math.min(targetY, block.y + 3);
-                                        allDone = false;
-                                    }
-                                });
-                                if (!allDone) {
-                                    requestAnimationFrame(animate);
-                                } else {
-                                    this.isAnimating = false;
-                                    this.spawnNewBlock();
-                                    if (this.backgroundOffsetY > 0) {
-                                        this.backgroundOffsetY = Math.max(0, this.backgroundOffsetY - 5);
-                                    }
-                                    // 在整体下移动画完成后延迟 1 秒切换图片
-                                    setTimeout(() => {
-                                        const switchImageBack = () => {
-                                            landedBlock.image = landedBlock.prefix === 'train' ? 'train' : `${landedBlock.prefix}_01`;
-                                        };
-                                        switchImageBack();
-                                    }, 1000);
-                                }
-                            };
-                            this.stack.forEach(block => block.originalY = block.y);
-                            requestAnimationFrame(animate);
-                        } else {
-                            this.spawnNewBlock();
-                            // 在普通情况下切换图片
-                            setTimeout(switchImageBack, 500);
-                        }
-
                         this.handleSuccess(perfectLanding, finalX, finalY);
                     } else if (landedOnGround) {
                         this.gameOver = true;
@@ -588,12 +551,14 @@
                 const landedBlock = this.stack[this.stack.length - 1];
                 landedBlock.squashStart = Date.now();
 
-                // 将 _01 图片透明度调整为 0
-                if (landedBlock.image.includes('_01')) {
-                    this.imageOpacity = 0; 
-                    // 切换为 _02 图片
-                    landedBlock.image = landedBlock.prefix === 'train' ? 'train' : `${landedBlock.prefix}_02`;
+                // 着陆时切换回 _01 图片
+                if (landedBlock.prefix!== 'train') {
+                    landedBlock.image = `${landedBlock.prefix}_01`;
                 }
+
+                setTimeout(() => {
+                    delete landedBlock.squashStart;
+                }, this.squashDuration + 100);
 
                 if (this.stack.length > 5) {
                     this.isAnimating = true;
