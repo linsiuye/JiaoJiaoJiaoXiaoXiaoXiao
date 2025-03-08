@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>椒霄叠叠乐·貊泽别凹小游戏了4.0</title>
+    <style>
+        body {
+            /* 添加渐变背景 */
+            background: linear-gradient(to bottom, #F6E4EA, #EBEFF5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 定义四角星样式 */
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 1.5s infinite;
+        }
+
+        @keyframes twinkle {
+            0% {
+                opacity: 0.2;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.2;
+            }
+        }
+
+        /* 其他样式保持不变 */
+        .container {
+            background: linear-gradient(to bottom, #F6E4EA, #EBEFF5);
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 480px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            transform-origin: center top;
+            transform: scale(calc(100vw / 500px));
+            /* 基于500px设计稿缩放 */
+            margin: 20px 0;
+        }
+
+        @media (max-width: 320px) {
+            .container {
+                transform: scale(0.85);
+            }
+        }
+
+        @media (min-width: 501px) {
+            .container {
+                transform: none;
+                /* PC端保持原尺寸 */
+            }
+        }
+
+        .title-logo {
+            max-width: 50%;
+            margin-bottom: 15px;
+            align-self: flex-start;
+            /* 新增：将 logo 向右移动 10px */
+            margin-left: 20px; 
+        }
+
+        .info-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            position: absolute;
+            top: 40px;
+            right: 20px;
+        }
+
+        .info {
+            font-size: 18px;
+            /* 调整字号 */
+            font-family: 'Arial Rounded MT Bold', Arial;
+            color: #B9594C;
+            background: rgba(255, 255, 255, 0.3); /* 增添透明底为0.3的白色背景 */
+            border-radius: 8px; /* 圆角 */
+            padding: 6px 15px;
+            text-align: left;
+            margin-left: -150px; /* 整体向左移动5px */
+            border-radius: 8px;
+            text-align: left; /* 修改为左端对齐 */
+        }
+
+        /* 新增：设置“得分：”文字颜色 */
+        .info:first-child::before {
+            content: "得分：";
+            color: #B9594C;
+        }
+
+        /* 新增：设置“最高分：”文字颜色 */
+        .info:last-child::before {
+            content: "最高分：";
+            color: #75BCC3;
+        }
+
+        /* 移除原有的“得分：”和“最高分：”文字 */
+        .info #score,
+        .info #highscore {
+            /* 修改此处，移除多余文字 */
+            margin-left: 0; 
+            content: "";
+        }
+
+        .info #highscore {
+            color: #75BCC3;
+            /* 修改最高分字色 */
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            /* 移动到画布下方 */
+        }
+
+        #restartButton {
+            background: #B9594C;
+            color: white;
+            padding: 12px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(185, 89, 76, 0.3);
+        }
+
+        #muteButton {
+            background: #75BCC3;
+            color: white;
+            padding: 12px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(117, 188, 195, 0.3);
+        }
+
+        #restartButton:hover,
+        #muteButton:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        #restartButton:active,
+        #muteButton:active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        canvas {
+            border: 3px solid #B9594C;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 90vw !important;
+            height: 135vw !important;
+            /* 保持3:2宽高比 */
+            max-width: 400px;
+            max-height: 600px;
+            touch-action: none;
+            /* 阻止默认触摸行为 */
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            color: #75BCC3;
+            padding: 20px 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+            font-size: 20px;
+            /* 整体缩小字体 */
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-over .total-score-label {
+            margin-bottom: 5px;
+            /* 调整间距 */
+        }
+
+        .game-over .total-score {
+            font-size: 36px;
+            color: #B9594C;
+            font-weight: 900; /* 更粗的字体 */
+            margin-bottom: 15px;
+        }
+
+        .game-over .total-score-label {
+            font-weight: 900; /* 更粗的字体 */
+        }
+
+        .game-over .continue-text {
+            font-weight: 900; /* 更粗的字体 */
+        }
+
+        .game-over .emoji-text {
+            font-weight: 900; /* 更粗的字体 */
+        }
+
+        .game-over button {
+            background: #B9594C;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            /* 缩小按钮 */
+            border-radius: 25px;
+            margin-top: 15px;
+            /* 下移按钮 */
+            font-size: 16px;
+            /* 缩小按钮文字 */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 900; /* 更粗的字体 */
+        }
+
+        .game-over button:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .game-over div {
+            line-height: 1.3;
+            margin: 8px 0;
+        }
+
+        .game-over .emoji-text {
+            font-size: 0.5em;
+            margin: 5px 0;
+            opacity: 0.9;
+            line-height: 1.2;
+        }
+
+        @media (max-width: 480px) {
+            .info {
+                font-size: 16px;
+                /* 调整字号 */
+                padding: 4px 12px;
+                /* 调整内边距 */
+            }
+
+            #restartButton,
+            #muteButton {
+                padding: 10px 25px;
+                font-size: 16px;
+            }
+
+            .game-over {
+                font-size: 20px;
+                padding: 15px 25px;
+            }
+
+            .game-over .emoji-text {
+                font-size: 0.4em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <img class="title-logo" src="title.png" alt="游戏标题">
+        <div class="info-container">
+            <!-- 移除“得分：”文字 -->
+            <div class="info"><span id="score">0</span></div>
+            <!-- 移除“最高分：”文字 -->
+            <div class="info"><span id="highscore">0</span></div>
+        </div>
+        <!-- 新增游戏结束提示 -->
+        <div class="game-over" id="gameOver">
+            <!-- 显示当前游戏总分 -->
+            <div class="total-score-label">当前游戏总分</div>
+            <div class="total-score" id="gameOverScore">0</div>
+            <div class="continue-text">继续加油</div>
+            <div class="emoji-text">✩* ♡:.(⸝⸝•ᴗ•⸝⸝).: ♡*✩</div>
+            <button onclick="game.reset()">再试一次</button>
+        </div>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div class="button-group">
+            <button id="restartButton">开始</button>
+            <button id="muteButton">静音</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let score = 0;
+        let highScore = localStorage.getItem('blockHighScore') || 0;
+        const audio = {
+            bgm: new Audio('BGM.mp3'),
+            collision: new Audio('kwii.mp3')
+        };
+        audio.bgm.loop = true;
+        let isMuted = false;
+
+        // 预加载图片资源
+        const images = {
+            JiaoQiu_01: new Image(),
+            JiaoQiu_02: new Image(),
+            FeiXiao_01: new Image(),
+            FeiXiao_02: new Image(),
+            train: new Image(),
+            background: new Image(),
+            title: new Image()
+        };
+        images.background.src = 'background.png';
+        images.title.src = 'title.png';
+        Object.entries(images).forEach(([name, img]) => {
+            img.src = `${name}.png`;
+        });
+
+        const game = {
+            blockSize: 60,
+            isFirstBlock: true,
+            currentBlock: null,
+            stack: [],
+            speed: 1.5,
+            gameOver: false,
+            isFalling: false,
+            isAnimating: false,
+            baseHeight: 600,
+            squashDuration: 200,
+            // 形变动画持续时间（毫秒）
+            validAreaRatio: 0.5,
+            // 有效区域比例(50%)
+            perfectThreshold: 10,
+            // 完美判定阈值(10px)
+            scoreAnimations: [],
+            // 得分动画数组
+            scoreAnimationCount: 0,
+            animationFrameId: null,
+            backgroundOffsetY: 2880,
+            // 背景图片初始偏移量
+
+            resizeCanvas() {
+                const scale = window.devicePixelRatio || 1;
+                canvas.style.width = '90vw';
+                // 可视宽度
+                canvas.style.height = '135vw';
+                // 保持3:2宽高比
+                canvas.width = 400 * scale;
+                // 逻辑像素×设备像素比
+                canvas.height = 600 * scale;
+                // 400×2=800（Retina屏）
+                ctx.scale(scale, scale);
+                // 使绘图操作自动适配物理像素
+            },
+
+            init() {
+                this.resizeCanvas();
+                // 初始化时执行一次
+                window.addEventListener('resize', () => this.resizeCanvas());
+                // 窗口变化时重新适配
+                document.getElementById('highscore').textContent = highScore;
+                this.spawnNewBlock();
+                this.gameLoop();
+            },
+
+            createScoreAnimation(x, y, score) {
+                if (this.scoreAnimationCount < 5) {
+                    y = canvas.height - 350;
+                    // 固定在画布底部
+                    isSpecial = true;
+                    this.scoreAnimationCount++;
+                } else {
+                    y = y - 30;
+                    // 正常位置
+                }
+
+                const animation = {
+                    x: x,
+                    y: y,
+                    text: `+${score}`,
+                    alpha: 0,
+                    startTime: Date.now(),
+                    state: 'fadeIn'
+                };
+                this.scoreAnimations.push(animation);
+            },
+
+            updateScoreAnimations: function() {
+                const now = Date.now();
+                this.scoreAnimations.forEach(anim => {
+                    const elapsed = now - anim.startTime;
+
+                    if (anim.state === 'fadeIn') {
+                        anim.alpha = Math.min(1, elapsed / 200);
+                        anim.y -= 1;
+                        if (elapsed >= 200) {
+                            anim.state = 'hold';
+                            anim.startTime = now;
+                        }
+                    } else if (anim.state === 'hold') {
+                        if (elapsed >= 300) {
+                            anim.state = 'fadeOut';
+                            anim.startTime = now;
+                        }
+                    } else {
+                        anim.alpha = 1 - ((now - anim.startTime) / 200);
+                        anim.y -= 2;
+                        if (anim.alpha <= 0) anim.state = 'done';
+                    }
+                });
+
+                this.scoreAnimations = this.scoreAnimations.filter(anim =>
+                    anim.state !== 'done'
+                );
+
+                this.scoreAnimations.forEach(anim => {
+                    ctx.save();
+                    ctx.globalAlpha = anim.alpha;
+                    ctx.font = 'bold 24px Arial'; 
+                    ctx.fillStyle = anim.text === '+20' ? '#B84D6E' : '#A1EFEF'; 
+                    ctx.textAlign = 'center';
+                    ctx.fillText(anim.text, anim.x, anim.y);
+                    ctx.restore();
+                });
+            },
+
+            spawnNewBlock() {
+                if (this.gameOver) return;
+
+                if (this.isFirstBlock) {
+                    this.currentBlock = {
+                        x: canvas.width / 2 - 51,
+                        y: 0,
+                        width: 102,
+                        height: 60,
+                        direction: 1,
+                        image: 'train',
+                        prefix: 'train',
+                        isTransitioning: false
+                    };
+                    this.isFirstBlock = false;
+                    this.isFalling = false;
+                    return;
+                }
+
+                // 随机选择前缀并添加01后缀
+                const prefixes = ['JiaoQiu', 'FeiXiao'];
+                const selectedPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+
+                this.currentBlock = {
+                    x: canvas.width / 2 - this.blockSize / 2,
+                    y: 0,
+                    width: this.blockSize,
+                    height: this.blockSize,
+                    direction: Math.random() > 0.5 ? 1 : -1,
+                    image: `${selectedPrefix}_01`,
+                    prefix: selectedPrefix,
+                    isTransitioning: false
+                };
+                this.isFalling = false;
+            },
+
+            drawBlock(block) {
+                if (block.y > canvas.height) return;
+
+                // 形变动画计算
+                let scaleX = 1;
+                let scaleY = 1;
+                if (block.squashStart) {
+                    const progress = Math.min(1, (Date.now() - block.squashStart) / this.squashDuration);
+
+                    // 压扁曲线：快速压扁然后缓慢恢复
+                    const squash = Math.sin(progress * Math.PI);
+                    scaleX = 1 + squash * 0.2;
+                    scaleY = 1 - squash * 0.3;
+                }
+                // 应用形变
+                ctx.save();
+                ctx.translate(
+                    block.x + block.width / 2,
+                    block.y + block.height / 2
+                );
+                ctx.scale(scaleX, scaleY);
+
+                const img = images[block.image];
+                if (img.complete) {
+                    ctx.drawImage(
+                        img,
+                        -block.width / 2,
+                        -block.height / 2,
+                        block.width,
+                        block.height
+                    );
+                }
+                ctx.restore();
+            },
+
+            update() {
+                // 检查 this.currentBlock 是否为 null 或 undefined
+                if (this.gameOver || this.isFalling || this.isAnimating ||!this.currentBlock) return;
+                this.currentBlock.x += this.speed * this.currentBlock.direction;
+
+                if (this.currentBlock.x <= 0 ||
+                    this.currentBlock.x + this.blockSize >= canvas.width) {
+                    this.currentBlock.direction *= -1;
+                }
+            },
+
+            dropBlock() {
+                const self = this;
+                if (this.isFalling || this.gameOver || this.isAnimating ||!this.currentBlock) return; // 添加对 currentBlock 的检查
+                this.isFalling = true;
+
+                const fall = () => {
+                    if (!self.currentBlock) return; // 再次检查 currentBlock 是否为 null
+                    self.currentBlock.y += 5;
+
+                    const landedOnGround = self.currentBlock.y + self.blockSize >= self.baseHeight;
+                    let landedOnLast = false;
+                    let perfectLanding = false;
+                    if (self.stack.length > 0) {
+                        const lastBlock = self.stack[self.stack.length - 1];
+                        const verticalCollision = self.currentBlock.y + self.blockSize >= lastBlock.y;
+                        const validAreaStart = lastBlock.x + (lastBlock.width * (1 - self.validAreaRatio) / 2);
+                        const validAreaEnd = validAreaStart + (lastBlock.width * self.validAreaRatio);
+                        const horizontalValid = (
+                            self.currentBlock.x + self.blockSize > validAreaStart &&
+                            self.currentBlock.x < validAreaEnd
+                        );
+                        landedOnLast = verticalCollision && horizontalValid;
+                        const centerDiff = Math.abs(
+                            (self.currentBlock.x + self.blockSize / 2) -
+                            (lastBlock.x + lastBlock.width / 2)
+                        );
+                        perfectLanding = centerDiff < self.perfectThreshold;
+                    }
+                    if ((this.stack.length === 0 && landedOnGround) || landedOnLast) {
+                        // 创建独立对象用于堆栈存储
+                        // 计算最终着陆位置
+                        let finalX = this.currentBlock.x + this.blockSize / 2;
+                        let finalY = this.currentBlock.y;
+
+                        if (this.stack.length > 0) {
+                            const lastBlock = this.stack[this.stack.length - 1];
+                            const minX = lastBlock.x;
+                            const maxX = lastBlock.x + lastBlock.width - this.blockSize;
+                            finalX = Math.max(minX, Math.min(this.currentBlock.x, maxX)) + this.blockSize / 2;
+                        }
+
+                        const landedBlock = {
+                            ...this.currentBlock,
+                            image: this.currentBlock.prefix === 'train' ? 'train' : `${this.currentBlock.prefix}_02`
+                        };
+
+                        this.stack.push(landedBlock);
+                        setTimeout(() => {
+                            landedBlock.image = landedBlock.prefix === 'train' ? 'train' : `${landedBlock.prefix}_01`;
+                        }, 500);
+                        this.handleSuccess(perfectLanding, finalX, finalY);
+                        // Y位置
+
+                    } else if (landedOnGround) {
+                        this.gameOver = true;
+                        this.endGame();
+                    } else {
+                        requestAnimationFrame(fall);
+                    }
+                }
+                fall();
+            },
+
+            handleSuccess(isPerfect, finalX, finalY) {
+                // 在成功着陆时触发形变动画
+                const landedBlock = this.stack[this.stack.length - 1];
+                landedBlock.squashStart = Date.now();
+
+                // 1秒后清除动画标记（防止内存泄漏）
+                setTimeout(() => {
+                    delete landedBlock.squashStart;
+                }, this.squashDuration + 100);
+
+                // 保持原有逻辑，但移除对图片状态的修改
+                if (this.stack.length > 5) {
+                    this.isAnimating = true;
+                    const targetYDelta = this.blockSize;
+                    const animate = () => {
+                        let allDone = true;
+                        this.stack.forEach(block => {
+                            const targetY = block.originalY + targetYDelta;
+                            if (block.y < targetY) {
+                                block.y = Math.min(targetY, block.y + 3);
+                                allDone = false;
+                            }
+                        });
+                        if (!allDone) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            this.isAnimating = false;
+                            this.spawnNewBlock();
+                            // 移动背景图片
+                            if (this.backgroundOffsetY > 0) {
+                                this.backgroundOffsetY = Math.max(0, this.backgroundOffsetY - 5);
+                            }
+                        }
+                    };
+                    this.stack.forEach(block => block.originalY = block.y);
+                    requestAnimationFrame(animate);
+                } else {
+                    this.spawnNewBlock();
+                }
+
+                score += isPerfect ? 20 : 10;
+
+                if (!isMuted) {
+                    audio.collision.currentTime = 0;
+                    audio.collision.play().catch(e => console.error("音效播放失败:", e));
+                }
+
+                this.createScoreAnimation(
+                    finalX,
+                    // 使用修正后的X中心坐标
+                    finalY - 30,
+                    // 使用修正后的Y坐标并上移30px
+                    isPerfect ? 20 : 10
+                );
+                document.getElementById('score').textContent = score;
+
+                if (isPerfect) {
+                    const canvasRect = canvas.getBoundingClientRect();
+                    const scaleX = canvas.width / canvasRect.width;
+                    const scaleY = canvas.height / canvasRect.height;
+
+                    ctx.fillStyle = 'gold';
+                    ctx.beginPath();
+                    ctx.arc(
+                        (finalX - canvasRect.left) * scaleX,
+                        (finalY - canvasRect.top) * scaleY,
+                        8 * window.devicePixelRatio,
+                        0, Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+            },
+
+            endGame() {
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('blockHighScore', highScore);
+                    document.getElementById('highscore').textContent = highScore;
+                }
+                // 直接将当前得分赋值给游戏结束弹窗里的总分显示元素
+                document.getElementById('gameOverScore').textContent = score;
+                const gameOverElement = document.getElementById('gameOver');
+                gameOverElement.style.display = 'block';
+                // 停止游戏循环
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
+                    this.animationFrameId = null;
+                }
+                this.gameOver = true;
+            },
+
+            reset() {
+                if (this.animationFrameId !== null) {
+                    cancelAnimationFrame(this.animationFrameId);
+                    this.animationFrameId = null;
+                }
+                this.stack = [];
+                this.isFirstBlock = true;
+                this.scoreAnimations = [];
+                score = 0;
+                document.getElementById('gameOver').style.display = 'none';
+                this.gameOver = false;
+                this.isAnimating = false;
+                this.baseHeight = 600;
+                this.scoreAnimationCount = 0;
+                this.gameLoopRunning = true;
+                // 确保标记为运行中
+                this.spawnNewBlock();
+                // 此时不会因gameLoopRunning检查失败
+                this.speed = 1.5;
+                this.isFalling = false;
+                this.backgroundOffsetY = 2880;
+                // 重置背景图片偏移量
+                if (!isMuted && audio.bgm.paused) {
+                    audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
+                }
+                this.gameLoop();
+                // 统一启动循环
+            },
+
+            gameLoop() {
+                if (this.gameOver) {
+                    this.gameLoopRunning = false;
+                    return;
+                }
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // 绘制背景图片
+                if (images.background.complete) {
+                    ctx.drawImage(images.background, 0, -this.backgroundOffsetY);
+                }
+                this.stack.forEach(b => this.drawBlock(b));
+                // 检查 this.currentBlock 是否为 null 或 undefined
+                if (this.currentBlock) {
+                    this.update();
+                    this.drawBlock(this.currentBlock);
+                }
+                this.updateScoreAnimations();
+
+                if (!this.gameOver) {
+                    this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
+                }
+            }
+        }
+
+        // 确保图片加载完成
+        Promise.all(Object.values(images).map(img => {
+            return new Promise(resolve => {
+                if (img.complete) resolve();
+                img.onload = resolve;
+            });
+        }))
+           .then(() => {
+                document.getElementById('highscore').textContent = highScore;
+                // 图片加载完成后开始绘制背景
+                game.gameLoop();
+            });
+
+        canvas.addEventListener('click', () => game.dropBlock());
+        document.getElementById('restartButton').addEventListener('click', function () {
+            if (!isMuted && audio.bgm.paused) {
+                audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
+            }
+            game.reset();
+        });
+
+        document.getElementById('muteButton').addEventListener('click', function () {
+            isMuted = !isMuted;
+            audio.bgm.muted = isMuted;
+            audio.collision.muted = isMuted;
+            this.textContent = isMuted ? '取消静音' : '静音';
+
+            if (!isMuted && audio.bgm.paused) {
+                audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
+            }
+        });
+
+        let touchStartY = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartY = e.touches[0].clientY;
+        });
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const touchEndY = e.changedTouches[0].clientY;
+            if (Math.abs(touchEndY - touchStartY) < 10) {
+                game.dropBlock();
+            }
+        });
+    </script>
+</body>
+
+</html>
