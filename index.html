@@ -582,9 +582,10 @@
             handleSuccess(isPerfect, finalX, finalY) {
                 const landedBlock = this.stack[this.stack.length - 1];
                 landedBlock.squashStart = Date.now();
-
+                this.imageOpacity = 0.5; 
                 setTimeout(() => {
                     delete landedBlock.squashStart;
+                    this.imageOpacity = 1;     
                 }, this.squashDuration + 100);
 
                 if (this.stack.length > 5) {
