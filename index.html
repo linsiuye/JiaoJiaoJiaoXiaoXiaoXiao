@@ -588,7 +588,7 @@
                             const targetY = block.originalY + targetYDelta;
                             // 增大每次移动的距离，这里将原来的 3 改为 5，可根据需求调整
                             if (block.y < targetY) {
-                                block.y = Math.min(targetY, block.y + 5); 
+                                block.y = Math.min(targetY, block.y + 15); 
                                 allDone = false;
                             }
                         });
