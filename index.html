@@ -284,437 +284,473 @@
         </div>
     </div>
     <script>
-            const canvas = document.getElementById('gameCanvas');
-            const ctx = canvas.getContext('2d');
-            let score = 0;
-            let highScore = localStorage.getItem('blockHighScore') || 0;
-            const audio = {
-                bgm: new Audio('BGM.mp3'),
-                collision: new Audio('kwii.mp3')
-            };
-            audio.bgm.loop = true;
-            let isMuted = false;
-        
-            const images = {
-                JiaoQiu_01: new Image(),
-                JiaoQiu_02: new Image(),
-                FeiXiao_01: new Image(),
-                FeiXiao_02: new Image(),
-                train: new Image(),
-                background: new Image(),
-                title: new Image()
-            };
-            images.background.src = 'background.png';
-            images.title.src = 'title.png';
-            Object.entries(images).forEach(([name, img]) => {
-                img.src = `${name}.png`;
-            });
-        
-            const game = {
-                blockSize: 60,
-                isFirstBlock: true,
-                currentBlock: null,
-                stack: [],
-                // 根据屏幕宽度调整初始速度
-                speed: window.innerWidth < 500 ? 5.5 : 1.5, 
-                gameOver: false,
-                isFalling: false,
-                isAnimating: false,
-                baseHeight: 600,
-                squashDuration: 200,
-                validAreaRatio: 0.5,
-                perfectThreshold: 10,
-                scoreAnimations: [],
-                scoreAnimationCount: 0,
-                animationFrameId: null,
-                backgroundOffsetY: 2880,
-        
-                resizeCanvas() {
-                    const scale = window.devicePixelRatio || 1;
-                    canvas.style.width = '90vw';
-                    canvas.style.height = '135vw';
-                    canvas.width = 400 * scale;
-                    canvas.height = 600 * scale;
-                    ctx.scale(scale, scale);
-                },
-        
-                init() {
-                    this.resizeCanvas();
-                    window.addEventListener('resize', () => this.resizeCanvas());
-                    document.getElementById('highscore').textContent = highScore;
-                    this.spawnNewBlock();
-                    this.gameLoop();
-                },
-        
-                createScoreAnimation(x, y, score) {
-                    if (this.scoreAnimationCount < 5) {
-                        y = canvas.height - 350;
-                        isSpecial = true;
-                        this.scoreAnimationCount++;
-                    } else {
-                        y = y - 30;
-                    }
-        
-                    const animation = {
-                        x: x,
-                        y: y,
-                        text: `+${score}`,
-                        alpha: 0,
-                        startTime: Date.now(),
-                        state: 'fadeIn'
-                    };
-                    this.scoreAnimations.push(animation);
-                },
-        
-                updateScoreAnimations: function() {
-                    const now = Date.now();
-                    this.scoreAnimations.forEach(anim => {
-                        const elapsed = now - anim.startTime;
-        
-                        if (anim.state === 'fadeIn') {
-                            anim.alpha = Math.min(1, elapsed / 200);
-                            anim.y -= 1;
-                            if (elapsed >= 200) {
-                                anim.state = 'hold';
-                                anim.startTime = now;
-                            }
-                        } else if (anim.state === 'hold') {
-                            if (elapsed >= 300) {
-                                anim.state = 'fadeOut';
-                                anim.startTime = now;
-                            }
-                        } else {
-                            anim.alpha = 1 - ((now - anim.startTime) / 200);
-                            anim.y -= 2;
-                            if (anim.alpha <= 0) anim.state = 'done';
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let score = 0;
+        let highScore = localStorage.getItem('blockHighScore') || 0;
+        const audio = {
+            bgm: new Audio('BGM.mp3'),
+            collision: new Audio('kwii.mp3')
+        };
+        audio.bgm.loop = true;
+        let isMuted = false;
+    
+        const images = {
+            JiaoQiu_01: new Image(),
+            JiaoQiu_02: new Image(),
+            FeiXiao_01: new Image(),
+            FeiXiao_02: new Image(),
+            train: new Image(),
+            background: new Image(),
+            title: new Image()
+        };
+        images.background.src = 'background.png';
+        images.title.src = 'title.png';
+        Object.entries(images).forEach(([name, img]) => {
+            img.src = `${name}.png`;
+        });
+    
+        const game = {
+            blockSize: 60,
+            isFirstBlock: true,
+            currentBlock: null,
+            stack: [],
+            // 根据屏幕宽度调整初始速度
+            speed: window.innerWidth < 500 ? 5.5 : 1.5, 
+            gameOver: false,
+            isFalling: false,
+            isAnimating: false,
+            baseHeight: 600,
+            squashDuration: 200,
+            validAreaRatio: 0.5,
+            perfectThreshold: 10,
+            scoreAnimations: [],
+            scoreAnimationCount: 0,
+            animationFrameId: null,
+            backgroundOffsetY: 2880,
+    
+            resizeCanvas() {
+                const scale = window.devicePixelRatio || 1;
+                canvas.style.width = '90vw';
+                canvas.style.height = '135vw';
+                canvas.width = 400 * scale;
+                canvas.height = 600 * scale;
+                ctx.scale(scale, scale);
+            },
+    
+            init() {
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                document.getElementById('highscore').textContent = highScore;
+                this.spawnNewBlock();
+                this.gameLoop();
+            },
+    
+            createScoreAnimation(x, y, score) {
+                if (this.scoreAnimationCount < 5) {
+                    y = canvas.height - 350;
+                    isSpecial = true;
+                    this.scoreAnimationCount++;
+                } else {
+                    y = y - 30;
+                }
+    
+                const animation = {
+                    x: x,
+                    y: y,
+                    text: `+${score}`,
+                    alpha: 0,
+                    startTime: Date.now(),
+                    state: 'fadeIn'
+                };
+                this.scoreAnimations.push(animation);
+            },
+    
+            updateScoreAnimations: function() {
+                const now = Date.now();
+                this.scoreAnimations.forEach(anim => {
+                    const elapsed = now - anim.startTime;
+    
+                    if (anim.state === 'fadeIn') {
+                        anim.alpha = Math.min(1, elapsed / 200);
+                        anim.y -= 1;
+                        if (elapsed >= 200) {
+                            anim.state = 'hold';
+                            anim.startTime = now;
                         }
-                    });
-        
-                    this.scoreAnimations = this.scoreAnimations.filter(anim =>
-                        anim.state !== 'done'
-                    );
-        
-                    this.scoreAnimations.forEach(anim => {
-                        ctx.save();
-                        ctx.globalAlpha = anim.alpha;
-                        ctx.font = 'bold 24px Arial'; 
-                        ctx.fillStyle = anim.text === '+20' ? '#B84D6E' : '#A1EFEF'; 
-                        ctx.textAlign = 'center';
-                        ctx.fillText(anim.text, anim.x, anim.y);
-                        ctx.restore();
-                    });
-                },
-        
-                spawnNewBlock() {
-                    if (this.gameOver) return;
-        
-                    if (this.isFirstBlock) {
-                        this.currentBlock = {
-                            x: canvas.width / 2 - 51,
-                            y: 0,
-                            width: 102,
-                            height: 60,
-                            direction: 1,
-                            image: 'train',
-                            prefix: 'train',
-                            isTransitioning: false
-                        };
-                        this.isFirstBlock = false;
-                        this.isFalling = false;
-                        return;
+                    } else if (anim.state === 'hold') {
+                        if (elapsed >= 300) {
+                            anim.state = 'fadeOut';
+                            anim.startTime = now;
+                        }
+                    } else {
+                        anim.alpha = 1 - ((now - anim.startTime) / 200);
+                        anim.y -= 2;
+                        if (anim.alpha <= 0) anim.state = 'done';
                     }
-        
-                    const prefixes = ['JiaoQiu', 'FeiXiao'];
-                    const selectedPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-        
+                });
+    
+                this.scoreAnimations = this.scoreAnimations.filter(anim =>
+                    anim.state !== 'done'
+                );
+    
+                this.scoreAnimations.forEach(anim => {
+                    ctx.save();
+                    ctx.globalAlpha = anim.alpha;
+                    ctx.font = 'bold 24px Arial'; 
+                    ctx.fillStyle = anim.text === '+20' ? '#B84D6E' : '#A1EFEF'; 
+                    ctx.textAlign = 'center';
+                    ctx.fillText(anim.text, anim.x, anim.y);
+                    ctx.restore();
+                });
+            },
+    
+            spawnNewBlock() {
+                if (this.gameOver) return;
+    
+                if (this.isFirstBlock) {
                     this.currentBlock = {
-                        x: canvas.width / 2 - this.blockSize / 2,
+                        x: canvas.width / 2 - 51,
                         y: 0,
-                        width: this.blockSize,
-                        height: this.blockSize,
-                        direction: Math.random() > 0.5 ? 1 : -1,
-                        image: `${selectedPrefix}_01`,
-                        prefix: selectedPrefix,
+                        width: 102,
+                        height: 60,
+                        direction: 1,
+                        image: 'train',
+                        prefix: 'train',
                         isTransitioning: false
                     };
+                    this.isFirstBlock = false;
                     this.isFalling = false;
-                },
-        
-                drawBlock(block) {
-                    if (block.y > canvas.height) return;
-        
-                    let scaleX = 1;
-                    let scaleY = 1;
-                    if (block.squashStart) {
-                        const progress = Math.min(1, (Date.now() - block.squashStart) / this.squashDuration);
-                        const squash = Math.sin(progress * Math.PI);
-                        scaleX = 1 + squash * 0.2;
-                        scaleY = 1 - squash * 0.3;
-                    }
-                    ctx.save();
-                    ctx.translate(
-                        block.x + block.width / 2,
-                        block.y + block.height / 2
+                    return;
+                }
+    
+                const prefixes = ['JiaoQiu', 'FeiXiao'];
+                const selectedPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    
+                this.currentBlock = {
+                    x: canvas.width / 2 - this.blockSize / 2,
+                    y: 0,
+                    width: this.blockSize,
+                    height: this.blockSize,
+                    direction: Math.random() > 0.5 ? 1 : -1,
+                    image: `${selectedPrefix}_01`,
+                    prefix: selectedPrefix,
+                    isTransitioning: false
+                };
+                this.isFalling = false;
+            },
+    
+            drawBlock(block) {
+                if (block.y > canvas.height) return;
+    
+                let scaleX = 1;
+                let scaleY = 1;
+                if (block.squashStart) {
+                    const progress = Math.min(1, (Date.now() - block.squashStart) / this.squashDuration);
+                    const squash = Math.sin(progress * Math.PI);
+                    scaleX = 1 + squash * 0.2;
+                    scaleY = 1 - squash * 0.3;
+                }
+                ctx.save();
+                ctx.translate(
+                    block.x + block.width / 2,
+                    block.y + block.height / 2
+                );
+                ctx.scale(scaleX, scaleY);
+    
+                const img = images[block.image];
+                if (img.complete) {
+                    ctx.drawImage(
+                        img,
+                        -block.width / 2,
+                        -block.height / 2,
+                        block.width,
+                        block.height
                     );
-                    ctx.scale(scaleX, scaleY);
-        
-                    const img = images[block.image];
-                    if (img.complete) {
-                        ctx.drawImage(
-                            img,
-                            -block.width / 2,
-                            -block.height / 2,
-                            block.width,
-                            block.height
+                }
+                ctx.restore();
+            },
+    
+            update() {
+                if (this.gameOver || this.isFalling || this.isAnimating ||!this.currentBlock) return;
+                this.currentBlock.x += this.speed * this.currentBlock.direction;
+    
+                if (this.currentBlock.x <= 0 ||
+                    this.currentBlock.x + this.blockSize >= canvas.width) {
+                    this.currentBlock.direction *= -1;
+                }
+            },
+    
+            dropBlock() {
+                const self = this;
+                if (this.isFalling || this.gameOver || this.isAnimating ||!this.currentBlock) return;
+                this.isFalling = true;
+    
+                const fall = () => {
+                    if (!self.currentBlock) return;
+                    // 根据屏幕宽度调整下落速度
+                    self.currentBlock.y += window.innerWidth < 500 ? 12 : 5; 
+    
+                    const landedOnGround = self.currentBlock.y + self.blockSize >= self.baseHeight;
+                    let landedOnLast = false;
+                    let perfectLanding = false;
+                    if (self.stack.length > 0) {
+                        const lastBlock = self.stack[self.stack.length - 1];
+                        const verticalCollision = self.currentBlock.y + self.blockSize >= lastBlock.y;
+                        const validAreaStart = lastBlock.x + (lastBlock.width * (1 - self.validAreaRatio) / 2);
+                        const validAreaEnd = validAreaStart + (lastBlock.width * self.validAreaRatio);
+                        const horizontalValid = (
+                            self.currentBlock.x + self.blockSize > validAreaStart &&
+                            self.currentBlock.x < validAreaEnd
                         );
+                        landedOnLast = verticalCollision && horizontalValid;
+                        const centerDiff = Math.abs(
+                            (self.currentBlock.x + self.blockSize / 2) -
+                            (lastBlock.x + lastBlock.width / 2)
+                        );
+                        perfectLanding = centerDiff < self.perfectThreshold;
                     }
-                    ctx.restore();
-                },
-        
-                update() {
-                    if (this.gameOver || this.isFalling || this.isAnimating ||!this.currentBlock) return;
-                    this.currentBlock.x += this.speed * this.currentBlock.direction;
-        
-                    if (this.currentBlock.x <= 0 ||
-                        this.currentBlock.x + this.blockSize >= canvas.width) {
-                        this.currentBlock.direction *= -1;
-                    }
-                },
-        
-                dropBlock() {
-                    const self = this;
-                    if (this.isFalling || this.gameOver || this.isAnimating ||!this.currentBlock) return;
-                    this.isFalling = true;
-        
-                    const fall = () => {
-                        if (!self.currentBlock) return;
-                        // 根据屏幕宽度调整下落速度
-                        self.currentBlock.y += window.innerWidth < 500 ? 12 : 5; 
-        
-                        const landedOnGround = self.currentBlock.y + self.blockSize >= self.baseHeight;
-                        let landedOnLast = false;
-                        let perfectLanding = false;
-                        if (self.stack.length > 0) {
-                            const lastBlock = self.stack[self.stack.length - 1];
-                            const verticalCollision = self.currentBlock.y + self.blockSize >= lastBlock.y;
-                            const validAreaStart = lastBlock.x + (lastBlock.width * (1 - self.validAreaRatio) / 2);
-                            const validAreaEnd = validAreaStart + (lastBlock.width * self.validAreaRatio);
-                            const horizontalValid = (
-                                self.currentBlock.x + self.blockSize > validAreaStart &&
-                                self.currentBlock.x < validAreaEnd
-                            );
-                            landedOnLast = verticalCollision && horizontalValid;
-                            const centerDiff = Math.abs(
-                                (self.currentBlock.x + self.blockSize / 2) -
-                                (lastBlock.x + lastBlock.width / 2)
-                            );
-                            perfectLanding = centerDiff < self.perfectThreshold;
+                    if ((this.stack.length === 0 && landedOnGround) || landedOnLast) {
+                        let finalX = this.currentBlock.x + this.blockSize / 2;
+                        let finalY = this.currentBlock.y;
+    
+                        if (this.stack.length > 0) {
+                            const lastBlock = this.stack[this.stack.length - 1];
+                            const minX = lastBlock.x;
+                            const maxX = lastBlock.x + lastBlock.width - this.blockSize;
+                            finalX = Math.max(minX, Math.min(this.currentBlock.x, maxX)) + this.blockSize / 2;
                         }
-                        if ((this.stack.length === 0 && landedOnGround) || landedOnLast) {
-                            let finalX = this.currentBlock.x + this.blockSize / 2;
-                            let finalY = this.currentBlock.y;
-        
-                            if (this.stack.length > 0) {
-                                const lastBlock = this.stack[this.stack.length - 1];
-                                const minX = lastBlock.x;
-                                const maxX = lastBlock.x + lastBlock.width - this.blockSize;
-                                finalX = Math.max(minX, Math.min(this.currentBlock.x, maxX)) + this.blockSize / 2;
-                            }
-        
-                            const landedBlock = {
-                                ...this.currentBlock,
-                                image: this.currentBlock.prefix === 'train' ? 'train' : `${this.currentBlock.prefix}_02`
-                            };
-        
-                            this.stack.push(landedBlock);
-                            setTimeout(() => {
-                                landedBlock.image = landedBlock.prefix === 'train' ? 'train' : `${landedBlock.prefix}_01`;
-                            }, 500);
-                            this.handleSuccess(perfectLanding, finalX, finalY);
-                        } else if (landedOnGround) {
-                            this.gameOver = true;
-                            this.endGame();
-                        } else {
-                            requestAnimationFrame(fall);
-                        }
-                    }
-                    fall();
-                },
-        
-                handleSuccess(isPerfect, finalX, finalY) {
-                    const landedBlock = this.stack[this.stack.length - 1];
-                    landedBlock.squashStart = Date.now();
-        
-                    setTimeout(() => {
-                        delete landedBlock.squashStart;
-                    }, this.squashDuration + 100);
-        
-                    if (this.stack.length > 5) {
-                        this.isAnimating = true;
-                        const targetYDelta = this.blockSize;
-                        const animate = () => {
-                            let allDone = true;
-                            this.stack.forEach(block => {
-                                const targetY = block.originalY + targetYDelta;
-                                if (block.y < targetY) {
-                                    block.y = Math.min(targetY, block.y + 3);
-                                    allDone = false;
-                                }
-                            });
-                            if (!allDone) {
-                                requestAnimationFrame(animate);
-                            } else {
-                                this.isAnimating = false;
-                                this.spawnNewBlock();
-                                if (this.backgroundOffsetY > 0) {
-                                    this.backgroundOffsetY = Math.max(0, this.backgroundOffsetY - 5);
-                                }
-                            }
+    
+                        const landedBlock = {
+                            ...this.currentBlock,
+                            image: this.currentBlock.prefix === 'train' ? 'train' : `${this.currentBlock.prefix}_02`
                         };
-                        this.stack.forEach(block => block.originalY = block.y);
-                        requestAnimationFrame(animate);
+    
+                        this.stack.push(landedBlock);
+                        landedBlock.squashStart = Date.now();
+    
+                        // 优化图片切换逻辑
+                        const switchImageBack = () => {
+                            landedBlock.image = landedBlock.prefix === 'train' ? 'train' : `${landedBlock.prefix}_01`;
+                        };
+    
+                        if (this.stack.length > 5) {
+                            this.isAnimating = true;
+                            const targetYDelta = this.blockSize;
+                            const animate = () => {
+                                let allDone = true;
+                                this.stack.forEach(block => {
+                                    const targetY = block.originalY + targetYDelta;
+                                    if (block.y < targetY) {
+                                        block.y = Math.min(targetY, block.y + 3);
+                                        allDone = false;
+                                    }
+                                });
+                                if (!allDone) {
+                                    requestAnimationFrame(animate);
+                                } else {
+                                    this.isAnimating = false;
+                                    this.spawnNewBlock();
+                                    if (this.backgroundOffsetY > 0) {
+                                        this.backgroundOffsetY = Math.max(0, this.backgroundOffsetY - 5);
+                                    }
+                                    // 在整体下移动画完成后切换图片
+                                    switchImageBack();
+                                }
+                            };
+                            this.stack.forEach(block => block.originalY = block.y);
+                            requestAnimationFrame(animate);
+                        } else {
+                            this.spawnNewBlock();
+                            // 在普通情况下切换图片
+                            setTimeout(switchImageBack, 500);
+                        }
+    
+                        this.handleSuccess(perfectLanding, finalX, finalY);
+                    } else if (landedOnGround) {
+                        this.gameOver = true;
+                        this.endGame();
                     } else {
-                        this.spawnNewBlock();
+                        requestAnimationFrame(fall);
                     }
-        
-                    score += isPerfect ? 20 : 10;
-        
-                    if (!isMuted) {
-                        audio.collision.currentTime = 0;
-                        audio.collision.play().catch(e => console.error("音效播放失败:", e));
-                    }
-        
-                    this.createScoreAnimation(
-                        finalX,
-                        finalY - 30,
-                        isPerfect ? 20 : 10
-                    );
-                    document.getElementById('score').textContent = score;
-        
-                    if (isPerfect) {
-                        const canvasRect = canvas.getBoundingClientRect();
-                        const scaleX = canvas.width / canvasRect.width;
-                        const scaleY = canvas.height / canvasRect.height;
-        
-                        ctx.fillStyle = 'gold';
-                        ctx.beginPath();
-                        ctx.arc(
-                            (finalX - canvasRect.left) * scaleX,
-                            (finalY - canvasRect.top) * scaleY,
-                            8 * window.devicePixelRatio,
-                            0, Math.PI * 2
-                        );
-                        ctx.fill();
-                    }
-                },
-        
-                endGame() {
-                    if (score > highScore) {
-                        highScore = score;
-                        localStorage.setItem('blockHighScore', highScore);
-                        document.getElementById('highscore').textContent = highScore;
-                    }
-                    document.getElementById('gameOverScore').textContent = score;
-                    const gameOverElement = document.getElementById('gameOver');
-                    gameOverElement.style.display = 'block';
-                    if (this.animationFrameId) {
-                        cancelAnimationFrame(this.animationFrameId);
-                        this.animationFrameId = null;
-                    }
-                    this.gameOver = true;
-                },
-        
-                reset() {
-                    if (this.animationFrameId !== null) {
-                        cancelAnimationFrame(this.animationFrameId);
-                        this.animationFrameId = null;
-                    }
-                    this.stack = [];
-                    this.isFirstBlock = true;
-                    this.scoreAnimations = [];
-                    score = 0;
-                    document.getElementById('gameOver').style.display = 'none';
-                    this.gameOver = false;
-                    this.isAnimating = false;
-                    this.baseHeight = 600;
-                    this.scoreAnimationCount = 0;
-                    this.gameLoopRunning = true;
+                }
+                fall();
+            },
+    
+            handleSuccess(isPerfect, finalX, finalY) {
+                const landedBlock = this.stack[this.stack.length - 1];
+                landedBlock.squashStart = Date.now();
+    
+                setTimeout(() => {
+                    delete landedBlock.squashStart;
+                }, this.squashDuration + 100);
+    
+                if (this.stack.length > 5) {
+                    this.isAnimating = true;
+                    const targetYDelta = this.blockSize;
+                    const animate = () => {
+                        let allDone = true;
+                        this.stack.forEach(block => {
+                            const targetY = block.originalY + targetYDelta;
+                            if (block.y < targetY) {
+                                block.y = Math.min(targetY, block.y + 3);
+                                allDone = false;
+                            }
+                        });
+                        if (!allDone) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            this.isAnimating = false;
+                            this.spawnNewBlock();
+                            if (this.backgroundOffsetY > 0) {
+                                this.backgroundOffsetY = Math.max(0, this.backgroundOffsetY - 5);
+                            }
+                        }
+                    };
+                    this.stack.forEach(block => block.originalY = block.y);
+                    requestAnimationFrame(animate);
+                } else {
                     this.spawnNewBlock();
-                    // 根据屏幕宽度调整重置后的速度
-                    this.speed = window.innerWidth < 500 ? 5.5 : 1.5; 
-                    this.isFalling = false;
-                    this.backgroundOffsetY = 2880;
-                    if (!isMuted && audio.bgm.paused) {
-                        audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
-                    }
-                    this.gameLoop();
-                },
-        
-                gameLoop() {
-                    if (this.gameOver) {
-                        this.gameLoopRunning = false;
-                        return;
-                    }
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    if (images.background.complete) {
-                        ctx.drawImage(images.background, 0, -this.backgroundOffsetY);
-                    }
-                    this.stack.forEach(b => this.drawBlock(b));
-                    if (this.currentBlock) {
-                        this.update();
-                        this.drawBlock(this.currentBlock);
-                    }
-                    this.updateScoreAnimations();
-        
-                    if (!this.gameOver) {
-                        this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
-                    }
+                }
+    
+                score += isPerfect ? 20 : 10;
+    
+                if (!isMuted) {
+                    audio.collision.currentTime = 0;
+                    audio.collision.play().catch(e => console.error("音效播放失败:", e));
+                }
+    
+                this.createScoreAnimation(
+                    finalX,
+                    finalY - 30,
+                    isPerfect ? 20 : 10
+                );
+                document.getElementById('score').textContent = score;
+    
+                if (isPerfect) {
+                    const canvasRect = canvas.getBoundingClientRect();
+                    const scaleX = canvas.width / canvasRect.width;
+                    const scaleY = canvas.height / canvasRect.height;
+    
+                    ctx.fillStyle = 'gold';
+                    ctx.beginPath();
+                    ctx.arc(
+                        (finalX - canvasRect.left) * scaleX,
+                        (finalY - canvasRect.top) * scaleY,
+                        8 * window.devicePixelRatio,
+                        0, Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+            },
+    
+            endGame() {
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('blockHighScore', highScore);
+                    document.getElementById('highscore').textContent = highScore;
+                }
+                document.getElementById('gameOverScore').textContent = score;
+                const gameOverElement = document.getElementById('gameOver');
+                gameOverElement.style.display = 'block';
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
+                    this.animationFrameId = null;
+                }
+                this.gameOver = true;
+            },
+    
+            reset() {
+                if (this.animationFrameId !== null) {
+                    cancelAnimationFrame(this.animationFrameId);
+                    this.animationFrameId = null;
+                }
+                this.stack = [];
+                this.isFirstBlock = true;
+                this.scoreAnimations = [];
+                score = 0;
+                document.getElementById('gameOver').style.display = 'none';
+                this.gameOver = false;
+                this.isAnimating = false;
+                this.baseHeight = 600;
+                this.scoreAnimationCount = 0;
+                this.gameLoopRunning = true;
+                this.spawnNewBlock();
+                // 根据屏幕宽度调整重置后的速度
+                this.speed = window.innerWidth < 500 ? 5.5 : 1.5; 
+                this.isFalling = false;
+                this.backgroundOffsetY = 2880;
+                if (!isMuted && audio.bgm.paused) {
+                    audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
+                }
+                this.gameLoop();
+            },
+    
+            gameLoop() {
+                if (this.gameOver) {
+                    this.gameLoopRunning = false;
+                    return;
+                }
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (images.background.complete) {
+                    ctx.drawImage(images.background, 0, -this.backgroundOffsetY);
+                }
+                this.stack.forEach(b => this.drawBlock(b));
+                if (this.currentBlock) {
+                    this.update();
+                    this.drawBlock(this.currentBlock);
+                }
+                this.updateScoreAnimations();
+    
+                if (!this.gameOver) {
+                    this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
                 }
             }
-        
-            Promise.all(Object.values(images).map(img => {
-                return new Promise(resolve => {
-                    if (img.complete) resolve();
-                    img.onload = resolve;
-                });
-            }))
-               .then(() => {
-                    document.getElementById('highscore').textContent = highScore;
-                    game.gameLoop();
-                });
-        
-            canvas.addEventListener('click', () => game.dropBlock());
-            document.getElementById('restartButton').addEventListener('click', function () {
-                if (!isMuted && audio.bgm.paused) {
-                    audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
-                }
-                game.reset();
+        }
+    
+        Promise.all(Object.values(images).map(img => {
+            return new Promise(resolve => {
+                if (img.complete) resolve();
+                img.onload = resolve;
             });
-        
-            document.getElementById('muteButton').addEventListener('click', function () {
-                isMuted = !isMuted;
-                audio.bgm.muted = isMuted;
-                audio.collision.muted = isMuted;
-                this.textContent = isMuted ? '取消静音' : '静音';
-        
-                if (!isMuted && audio.bgm.paused) {
-                    audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
-                }
+        }))
+           .then(() => {
+                document.getElementById('highscore').textContent = highScore;
+                game.gameLoop();
             });
-        
-            let touchStartY = 0;
-            canvas.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                touchStartY = e.touches[0].clientY;
-            });
-            canvas.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                const touchEndY = e.changedTouches[0].clientY;
-                if (Math.abs(touchEndY - touchStartY) < 10) {
-                    game.dropBlock();
-                }
-            });
-        </script>
+    
+        canvas.addEventListener('click', () => game.dropBlock());
+        document.getElementById('restartButton').addEventListener('click', function () {
+            if (!isMuted && audio.bgm.paused) {
+                audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
+            }
+            game.reset();
+        });
+    
+        document.getElementById('muteButton').addEventListener('click', function () {
+            isMuted = !isMuted;
+            audio.bgm.muted = isMuted;
+            audio.collision.muted = isMuted;
+            this.textContent = isMuted ? '取消静音' : '静音';
+    
+            if (!isMuted && audio.bgm.paused) {
+                audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
+            }
+        });
+    
+        let touchStartY = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartY = e.touches[0].clientY;
+        });
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const touchEndY = e.changedTouches[0].clientY;
+            if (Math.abs(touchEndY - touchStartY) < 10) {
+                game.dropBlock();
+            }
+        });
+    </script>
 </body>
 
 </html>
