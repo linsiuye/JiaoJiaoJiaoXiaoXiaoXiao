@@ -556,8 +556,13 @@
                                     if (this.backgroundOffsetY > 0) {
                                         this.backgroundOffsetY = Math.max(0, this.backgroundOffsetY - 5);
                                     }
-                                    // 在整体下移动画完成后切换图片
-                                    switchImageBack();
+                                    // 在整体下移动画完成后延迟 1 秒切换图片
+                                    setTimeout(() => {
+                                        const switchImageBack = () => {
+                                            landedBlock.image = landedBlock.prefix === 'train' ? 'train' : `${landedBlock.prefix}_01`;
+                                        };
+                                        switchImageBack();
+                                    }, 1000);
                                 }
                             };
                             this.stack.forEach(block => block.originalY = block.y);
@@ -583,17 +588,12 @@
                 const landedBlock = this.stack[this.stack.length - 1];
                 landedBlock.squashStart = Date.now();
 
-                // 仅针对后缀为 _01 的图片调整透明度
+                // 将 _01 图片透明度调整为 0
                 if (landedBlock.image.includes('_01')) {
-                    this.imageOpacity = 0.5; 
+                    this.imageOpacity = 0; 
+                    // 切换为 _02 图片
+                    landedBlock.image = landedBlock.prefix === 'train' ? 'train' : `${landedBlock.prefix}_02`;
                 }
-
-                setTimeout(() => {
-                    if (landedBlock.image.includes('_01')) {
-                        this.imageOpacity = 1; 
-                    }
-                    delete landedBlock.squashStart;
-                }, this.squashDuration + 100);
 
                 if (this.stack.length > 5) {
                     this.isAnimating = true;
