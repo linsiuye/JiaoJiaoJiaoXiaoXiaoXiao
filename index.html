@@ -139,7 +139,8 @@
             margin-top: 25px;
         }
 
-        #restartButton {
+        #restartButton,
+        #speedButton {
             background: #B9594C;
             color: white;
             padding: 10px 25px;
@@ -163,6 +164,7 @@
             box-shadow: 0 2px 6px rgba(185, 89, 76, 0.3);
         }
 
+<<<<<<< HEAD
         #muteButton {
             background: #75BCC3;
             color: white;
@@ -175,6 +177,8 @@
             box-shadow: 0 2px 6px rgba(117, 188, 195, 0.3);
         }
 
+=======
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
         #restartButton:hover,
         #muteButton:hover,
         #speedButton:hover {
@@ -319,8 +323,15 @@
         <input type="range" id="speedSlider" min="1" max="5" value="3" style="display: none;">
         <!-- 使用说明窗口 -->
         <div class="instruction-window" id="instructionWindow">
+<<<<<<< HEAD
             <h2>🦊食用说明🐦‍⬛</h2>
             <p>按”开始“启动游戏</p>
+=======
+            <h2>🦊食用说明🦊</h2>
+            <p>按”开始“启动游戏</p>
+            <p>点击屏幕让椒椒霄霄下落</p>
+            <p>要稳稳接住哦</p>
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
             <p>设备不同可能导致方块移动速度不同</p>
             <p>点击“速度”可以拖动进行调整</p>
             <p>往左调=慢，往右调=快</p>
@@ -550,7 +561,11 @@
                     x: randomX,
                     y: 0,
                     width: this.blockSize,
+<<<<<<< HEAD
                     height: blockHeight,
+=======
+                    height: this.blockSize,
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
                     direction: Math.random() > 0.5 ? 1 : -1,
                     image: `${selectedPrefix}_01`,
                     prefix: selectedPrefix,
@@ -563,6 +578,51 @@
                 }, this.clickDelay);
             },
 
+<<<<<<< HEAD
+=======
+            drawBlock(block) {
+                if (block.y > canvas.height) return;
+
+                let scaleX = 1;
+                let scaleY = 1;
+                if (block.squashStart) {
+                    const progress = Math.min(1, (Date.now() - block.squashStart) / this.squashDuration);
+                    const squash = Math.sin(progress * Math.PI);
+                    scaleX = 1 + squash * 0.2;
+                    scaleY = 1 - squash * 0.3;
+                }
+                ctx.save();
+                ctx.translate(
+                    block.x + block.width / 2,
+                    block.y + block.height / 2
+                );
+                ctx.scale(scaleX, scaleY);
+
+                const img = images[block.image];
+                if (img.complete) {
+                    ctx.globalAlpha = this.imageOpacity;
+                    ctx.drawImage(
+                        img,
+                        -block.width / 2,
+                        -block.height / 2,
+                        block.width,
+                        block.height
+                    );
+                }
+                ctx.restore();
+            },
+
+            update() {
+                if (this.gameOver || this.isFalling || this.isAnimating ||!this.currentBlock) return;
+                this.currentBlock.x += this.speed * this.currentBlock.direction;
+
+                if (this.currentBlock.x <= 0 ||
+                    this.currentBlock.x + this.blockSize >= canvas.width) {
+                    this.currentBlock.direction *= -1;
+                }
+            },
+
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
             dropBlock() {
                 if (!this.clickAllowed || this.isFalling || this.gameOver || this.isAnimating ||!this.currentBlock) return;
                 const self = this;
@@ -894,4 +954,8 @@
             border-radius: 50%;
         }
     </style>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
