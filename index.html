@@ -3,10 +3,14 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<<<<<<< Updated upstream
     <title>椒霄叠叠乐·貊泽别凹小游戏了4.0特别版</title>
+=======
+    <title>曜青叠叠乐·貊泽别凹小游戏了4.0特别版</title>
+>>>>>>> Stashed changes
     <style>
         body {
-            background: linear-gradient(to bottom, #F6E4EA, #EBEFF5);
+            background: linear-gradient(to bottom, #F6E4EA, #f1ebf5);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -152,6 +156,19 @@
             box-shadow: 0 2px 6px rgba(185, 89, 76, 0.3);
         }
 
+        #speedButton {
+            background: #7661a1;
+            color: white;
+            padding: 10px 25px;
+            font-size: 16px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(185, 89, 76, 0.3);
+        }
+
+<<<<<<< HEAD
         #muteButton {
             background: #75BCC3;
             color: white;
@@ -164,6 +181,11 @@
             box-shadow: 0 2px 6px rgba(117, 188, 195, 0.3);
         }
 
+<<<<<<< Updated upstream
+=======
+=======
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
+>>>>>>> Stashed changes
         #restartButton:hover,
         #muteButton:hover,
         #speedButton:hover {
@@ -235,7 +257,7 @@
         }
 
         .game-over button {
-            background: #B9594C;
+            background: #7661a1;
             color: white;
             border: none;
             padding: 8px 20px;
@@ -297,7 +319,6 @@
             <div class="total-score-label">当前游戏总分</div>
             <div class="total-score" id="gameOverScore">0</div>
             <div class="continue-text">继续加油</div>
-            <div class="emoji-text">✩* ♡:.(⸝⸝•ᴗ•⸝⸝).: ♡*✩</div>
             <button onclick="game.reset()">再试一次</button>
         </div>
         <canvas id="gameCanvas" width="400" height="600"></canvas>
@@ -309,10 +330,21 @@
         <input type="range" id="speedSlider" min="1" max="5" value="3" style="display: none;">
         <!-- 使用说明窗口 -->
         <div class="instruction-window" id="instructionWindow">
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+            <h2>🦊食用说明🐦‍⬛</h2>
+            <p>按”开始“启动游戏</p>
+=======
+>>>>>>> Stashed changes
             <h2>🦊食用说明🦊</h2>
             <p>按”开始“启动游戏</p>
             <p>点击屏幕让椒椒霄霄下落</p>
             <p>要稳稳接住哦</p>
+<<<<<<< Updated upstream
+=======
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
+>>>>>>> Stashed changes
             <p>设备不同可能导致方块移动速度不同</p>
             <p>点击“速度”可以拖动进行调整</p>
             <p>往左调=慢，往右调=快</p>
@@ -339,14 +371,35 @@
             C_02: new Image(),
             D_01: new Image(),
             D_02: new Image(),
+<<<<<<< Updated upstream
+=======
+            E_01: new Image(),
+            E_02: new Image(),
+            F_01: new Image(),
+            F_02: new Image(),
+>>>>>>> Stashed changes
             train: new Image(),
             background: new Image(),
             title: new Image()
         };
+
+        // 为每个图片添加错误处理
+        Object.entries(images).forEach(([name, img]) => {
+            img.onerror = () => {
+                console.error(`图片 ${name} 加载失败，请检查路径是否正确: ${img.src}`);
+            };
+        });
+
         images.background.src = 'background.png';
         images.title.src = 'title.png';
         Object.entries(images).forEach(([name, img]) => {
+<<<<<<< Updated upstream
             img.src = `tex/${name}.png`;
+=======
+            if (name !== 'background' && name !== 'title') {
+                img.src = `tex/${name}.png`;
+            }
+>>>>>>> Stashed changes
         });
 
         const game = {
@@ -378,6 +431,48 @@
                 canvas.width = 400 * scale;
                 canvas.height = 600 * scale;
                 ctx.scale(scale, scale);
+            },
+
+            update() {
+                if (this.gameOver || this.isFalling || this.isAnimating ||!this.currentBlock) return;
+                this.currentBlock.x += this.speed * this.currentBlock.direction;
+
+                if (this.currentBlock.x <= 0 ||
+                    this.currentBlock.x + this.blockSize >= canvas.width) {
+                    this.currentBlock.direction *= -1;
+                }
+            },
+
+            drawBlock(block) {
+                if (block.y > canvas.height) return;
+
+                let scaleX = 1;
+                let scaleY = 1;
+                if (block.squashStart) {
+                    const progress = Math.min(1, (Date.now() - block.squashStart) / this.squashDuration);
+                    const squash = Math.sin(progress * Math.PI);
+                    scaleX = 1 + squash * 0.2;
+                    scaleY = 1 - squash * 0.3;
+                }
+                ctx.save();
+                ctx.translate(
+                    block.x + block.width / 2,
+                    block.y + block.height / 2
+                );
+                ctx.scale(scaleX, scaleY);
+
+                const img = images[block.image];
+                if (img.complete) {
+                    ctx.globalAlpha = this.imageOpacity;
+                    ctx.drawImage(
+                        img,
+                        -block.width / 2,
+                        -block.height / 2,
+                        block.width,
+                        block.height
+                    );
+                }
+                ctx.restore();
             },
 
             init() {
@@ -470,17 +565,34 @@
                     return;
                 }
 
+<<<<<<< Updated upstream
                 const prefixes = ['A', 'B', 'C', 'D'];
+=======
+                const prefixes = ['A', 'B', 'C', 'D', 'E', 'F'];
+>>>>>>> Stashed changes
                 const selectedPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
 
                 const maxX = canvas.width - this.blockSize;
                 const randomX = Math.floor(Math.random() * maxX);
 
+                // 根据前缀动态设置方块高度
+                let blockHeight = this.blockSize;
+                if (['E', 'F'].includes(selectedPrefix)) {
+                    blockHeight = Math.floor((81 / 99) * this.blockSize); // 按比例削减高度
+                }
+
                 this.currentBlock = {
                     x: randomX,
                     y: 0,
                     width: this.blockSize,
+<<<<<<< HEAD
+                    height: blockHeight,
+=======
                     height: this.blockSize,
+<<<<<<< Updated upstream
+=======
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
+>>>>>>> Stashed changes
                     direction: Math.random() > 0.5 ? 1 : -1,
                     image: `${selectedPrefix}_01`,
                     prefix: selectedPrefix,
@@ -493,6 +605,8 @@
                 }, this.clickDelay);
             },
 
+<<<<<<< HEAD
+=======
             drawBlock(block) {
                 if (block.y > canvas.height) return;
 
@@ -535,6 +649,7 @@
                 }
             },
 
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
             dropBlock() {
                 if (!this.clickAllowed || this.isFalling || this.gameOver || this.isAnimating ||!this.currentBlock) return;
                 const self = this;
@@ -565,39 +680,38 @@
                     if (!self.currentBlock) return;
                     self.currentBlock.y += (window.innerWidth < 500 ? 12 : 5) / 2;
 
-                    const landedOnGround = self.currentBlock.y + self.blockSize >= self.baseHeight;
+                    const landedOnGround = self.currentBlock.y + self.currentBlock.height >= self.baseHeight; // 修改为 currentBlock.height
                     let landedOnLast = false;
                     let perfectLanding = false;
                     if (self.stack.length > 0) {
                         const lastBlock = self.stack[self.stack.length - 1];
-                        const verticalCollision = self.currentBlock.y + self.blockSize >= lastBlock.y;
+                        const verticalCollision = self.currentBlock.y + self.currentBlock.height >= lastBlock.y; // 修改为 currentBlock.height
                         const validAreaStart = lastBlock.x + (lastBlock.width * (1 - self.validAreaRatio) / 2);
                         const validAreaEnd = validAreaStart + (lastBlock.width * self.validAreaRatio);
                         const horizontalValid = (
-                            self.currentBlock.x + self.blockSize > validAreaStart &&
+                            self.currentBlock.x + self.currentBlock.width > validAreaStart &&
                             self.currentBlock.x < validAreaEnd
                         );
                         landedOnLast = verticalCollision && horizontalValid;
                         const centerDiff = Math.abs(
-                            (self.currentBlock.x + self.blockSize / 2) -
+                            (self.currentBlock.x + self.currentBlock.width / 2) -
                             (lastBlock.x + lastBlock.width / 2)
                         );
                         perfectLanding = centerDiff < self.perfectThreshold;
                     }
                     if ((this.stack.length === 0 && landedOnGround) || landedOnLast) {
-                        let finalX = this.currentBlock.x + this.blockSize / 2;
+                        let finalX = this.currentBlock.x + this.currentBlock.width / 2;
                         let finalY = this.currentBlock.y;
 
                         if (this.stack.length > 0) {
                             const lastBlock = this.stack[this.stack.length - 1];
                             const minX = lastBlock.x;
-                            const maxX = lastBlock.x + lastBlock.width - this.blockSize;
-                            finalX = Math.max(minX, Math.min(this.currentBlock.x, maxX)) + this.blockSize / 2;
+                            const maxX = lastBlock.x + lastBlock.width - this.currentBlock.width;
+                            finalX = Math.max(minX, Math.min(this.currentBlock.x, maxX)) + this.currentBlock.width / 2;
                         }
 
                         const landedBlock = {
-                            ...this.currentBlock,
-                            image: this.currentBlock.prefix === 'train'? 'train' : `${this.currentBlock.prefix}_02`
+                            ...this.currentBlock
                         };
 
                         this.stack.push(landedBlock);
@@ -867,4 +981,12 @@
             border-radius: 50%;
         }
     </style>
+<<<<<<< Updated upstream
 </html>
+=======
+<<<<<<< HEAD
+</html>
+=======
+</html>
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
+>>>>>>> Stashed changes
