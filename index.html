@@ -3,11 +3,8 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<<<<<<< Updated upstream
-    <title>椒霄叠叠乐·貊泽别凹小游戏了4.0特别版</title>
-=======
+
     <title>曜青叠叠乐·貊泽别凹小游戏了4.0特别版</title>
->>>>>>> Stashed changes
     <style>
         body {
             background: linear-gradient(to bottom, #F6E4EA, #f1ebf5);
@@ -181,11 +178,16 @@
             box-shadow: 0 2px 6px rgba(117, 188, 195, 0.3);
         }
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 =======
 >>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
 >>>>>>> Stashed changes
+=======
+=======
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
+>>>>>>> 390982a26a8acb73ec30b23c4cb27660da22580b
         #restartButton:hover,
         #muteButton:hover,
         #speedButton:hover {
@@ -330,21 +332,31 @@
         <input type="range" id="speedSlider" min="1" max="5" value="3" style="display: none;">
         <!-- 使用说明窗口 -->
         <div class="instruction-window" id="instructionWindow">
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
+=======
+>>>>>>> 390982a26a8acb73ec30b23c4cb27660da22580b
 <<<<<<< HEAD
             <h2>🦊食用说明🐦‍⬛</h2>
             <p>按”开始“启动游戏</p>
 =======
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> 390982a26a8acb73ec30b23c4cb27660da22580b
             <h2>🦊食用说明🦊</h2>
             <p>按”开始“启动游戏</p>
             <p>点击屏幕让椒椒霄霄下落</p>
             <p>要稳稳接住哦</p>
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 >>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
 >>>>>>> Stashed changes
+=======
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
+>>>>>>> 390982a26a8acb73ec30b23c4cb27660da22580b
             <p>设备不同可能导致方块移动速度不同</p>
             <p>点击“速度”可以拖动进行调整</p>
             <p>往左调=慢，往右调=快</p>
@@ -371,13 +383,19 @@
             C_02: new Image(),
             D_01: new Image(),
             D_02: new Image(),
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
+=======
+>>>>>>> 390982a26a8acb73ec30b23c4cb27660da22580b
             E_01: new Image(),
             E_02: new Image(),
             F_01: new Image(),
             F_02: new Image(),
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> 390982a26a8acb73ec30b23c4cb27660da22580b
             train: new Image(),
             background: new Image(),
             title: new Image()
@@ -393,6 +411,7 @@
         images.background.src = 'background.png';
         images.title.src = 'title.png';
         Object.entries(images).forEach(([name, img]) => {
+<<<<<<< HEAD
 <<<<<<< Updated upstream
             img.src = `tex/${name}.png`;
 =======
@@ -400,6 +419,11 @@
                 img.src = `tex/${name}.png`;
             }
 >>>>>>> Stashed changes
+=======
+            if (name !== 'background' && name !== 'title') {
+                img.src = `tex/${name}.png`;
+            }
+>>>>>>> 390982a26a8acb73ec30b23c4cb27660da22580b
         });
 
         const game = {
@@ -565,11 +589,15 @@
                     return;
                 }
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
                 const prefixes = ['A', 'B', 'C', 'D'];
 =======
                 const prefixes = ['A', 'B', 'C', 'D', 'E', 'F'];
 >>>>>>> Stashed changes
+=======
+                const prefixes = ['A', 'B', 'C', 'D', 'E', 'F'];
+>>>>>>> 390982a26a8acb73ec30b23c4cb27660da22580b
                 const selectedPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
 
                 const maxX = canvas.width - this.blockSize;
@@ -589,10 +617,14 @@
                     height: blockHeight,
 =======
                     height: this.blockSize,
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 >>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
 >>>>>>> Stashed changes
+=======
+>>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
+>>>>>>> 390982a26a8acb73ec30b23c4cb27660da22580b
                     direction: Math.random() > 0.5 ? 1 : -1,
                     image: `${selectedPrefix}_01`,
                     prefix: selectedPrefix,
@@ -981,12 +1013,18 @@
             border-radius: 50%;
         }
     </style>
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 </html>
 =======
+=======
+>>>>>>> 390982a26a8acb73ec30b23c4cb27660da22580b
 <<<<<<< HEAD
 </html>
 =======
 </html>
 >>>>>>> df3d28f73329779031a4ecbacbf7655cb8410e71
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> 390982a26a8acb73ec30b23c4cb27660da22580b
