@@ -83,7 +83,8 @@
                 padding: 3px 10px;
             }
             #restartButton,
-            #muteButton {
+            #muteButton,
+            #speedButton {
                 padding: 8px 20px;
                 font-size: 14px;
             }
@@ -101,7 +102,6 @@
                 transform: scale(0.75);
                 margin-top: -30px;
             }
-
             .info-container {
                 transform: scale(0.6);
                 margin: 10px 0;
@@ -139,8 +139,7 @@
             margin-top: 25px;
         }
 
-        #restartButton,
-        #speedButton {
+        #restartButton {
             background: #B9594C;
             color: white;
             padding: 10px 25px;
@@ -153,6 +152,18 @@
         }
 
         #muteButton {
+            background: #75BCC3;
+            color: white;
+            padding: 10px 25px;
+            font-size: 16px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(117, 188, 195, 0.3);
+        }
+
+        #speedButton {
             background: #75BCC3;
             color: white;
             padding: 10px 25px;
@@ -257,31 +268,51 @@
             margin: 8px 0;
         }
 
-        /* 使用说明窗口样式 */
-        .instruction-window {
+        /* 速度调整窗口样式 */
+        #speedSliderContainer {
+            display: none;
             position: absolute;
-            top: calc(500px + 3px); /* 顶部与 canvas 画布对齐后向下移动 300px，加上边框宽度 */
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 80px;
             background: rgba(255, 255, 255, 0.8);
-            border-radius: 12px;
-            padding: 20px;
-            z-index: 101;
-            text-align: center;
-            width: 80%;
-            max-width: 300px;
+            backdrop-filter: blur(10px);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .instruction-window h2 {
-            font-size: 24px;
+        #speedSlider {
+            width: 200px;
+        }
+
+        /* 新增：食用说明样式 */
+        #instructions {
+            position: absolute;
+            /* 调整 top 值，使说明框在 Y 轴上处于画布的居中位置 */
+            top: calc(50% - 300px + (600px - 600px) / 2); 
+            left: calc(50% - 200px); 
+            /* 与画布大小一致 */
+            width: 400px; 
+            height: 600px; 
             color: #3B2525;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 101;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #instructions h2 {
+            font-size: 24px;
             margin-bottom: 10px;
         }
 
-        .instruction-window p {
-            font-size: 14px;
-            color: #3B2525;
-            margin: 5px 0;
+        #instructions p {
+            font-size: 16px;
+            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -306,15 +337,22 @@
             <button id="muteButton">静音</button>
             <button id="speedButton">速度</button>
         </div>
-        <input type="range" id="speedSlider" min="1" max="5" value="3" style="display: none;">
-        <!-- 使用说明窗口 -->
-        <div class="instruction-window" id="instructionWindow">
+        <div id="speedSliderContainer">
+            <input type="range" id="speedSlider" min="1" max="5" value="3">
+        </div>
+        <!-- 新增：食用说明 -->
+        <div id="instructions">
+            </p> </p>
+            </p> </p>
+            </p> </p>
+            </p> </p>
+            </p> </p>
             <h2>🦊食用说明🦊</h2>
-            <p>按”开始“启动游戏</p>
+            <p>点击”开始“启动游戏</p>
             <p>点击屏幕让椒椒霄霄下落</p>
-            <p>要稳稳接住哦</p>
+            <p>要稳稳的接住哦</p>
             <p>设备不同可能导致方块移动速度不同</p>
-            <p>点击“速度”可以拖动进行调整</p>
+            <p>点击“速度”可以进行拖动调整</p>
             <p>往左调=慢，往右调=快</p>
         </div>
     </div>
@@ -331,14 +369,10 @@
         let isMuted = false;
 
         const images = {
-            A_01: new Image(),
-            A_02: new Image(),
-            B_01: new Image(),
-            B_02: new Image(),
-            C_01: new Image(),
-            C_02: new Image(),
-            D_01: new Image(),
-            D_02: new Image(),
+            JiaoQiu_01: new Image(),
+            JiaoQiu_02: new Image(),
+            FeiXiao_01: new Image(),
+            FeiXiao_02: new Image(),
             train: new Image(),
             background: new Image(),
             title: new Image()
@@ -346,7 +380,7 @@
         images.background.src = 'background.png';
         images.title.src = 'title.png';
         Object.entries(images).forEach(([name, img]) => {
-            img.src = `tex/${name}.png`;
+            img.src = `${name}.png`;
         });
 
         const game = {
@@ -354,7 +388,7 @@
             isFirstBlock: true,
             currentBlock: null,
             stack: [],
-            speed: window.innerWidth < 500 ? 5.5 : 1.5,
+            speed: localStorage.getItem('blockSpeed')? parseFloat(localStorage.getItem('blockSpeed')) : 1.5,
             gameOver: false,
             isFalling: false,
             isAnimating: false,
@@ -365,11 +399,12 @@
             scoreAnimations: [],
             scoreAnimationCount: 0,
             animationFrameId: null,
-            backgroundOffsetY: 2880,
+            backgroundOffsetY: 0, // 修改背景图初始偏移量为 0
             imageOpacity: 1,
             activeAnimations: new Set(),
             clickAllowed: false,
-            clickDelay: 300,
+            clickDelay: 300, // 缩短禁止点击的间隔时间为 300ms
+            gameStarted: false,
 
             resizeCanvas() {
                 const scale = window.devicePixelRatio || 1;
@@ -384,13 +419,13 @@
                 this.resizeCanvas();
                 window.addEventListener('resize', () => this.resizeCanvas());
                 document.getElementById('highscore').textContent = highScore;
-                this.spawnNewBlock();
-                this.gameLoop();
+                // 不在这里调用 spawnNewBlock 和 gameLoop，等待点击开始按钮
             },
 
             createScoreAnimation(x, y, score) {
                 if (this.scoreAnimationCount < 5) {
-                    y = canvas.height - 350;
+                    // 调高初始位置，这里将原本的 350 调整为 400，可按需修改
+                    y = canvas.height - 550; 
                     isSpecial = true;
                     this.scoreAnimationCount++;
                 } else {
@@ -433,14 +468,14 @@
                 });
 
                 this.scoreAnimations = this.scoreAnimations.filter(anim =>
-                    anim.state !== 'done'
+                    anim.state!== 'done'
                 );
 
                 this.scoreAnimations.forEach(anim => {
                     ctx.save();
                     ctx.globalAlpha = anim.alpha;
-                    ctx.font = 'bold 24px Arial';
-                    ctx.fillStyle = anim.text === '+20' ? '#B84D6E' : '#A1EFEF';
+                    ctx.font = 'bold 24px Arial'; 
+                    ctx.fillStyle = anim.text === '+20'? '#B84D6E' : '#A1EFEF'; 
                     ctx.textAlign = 'center';
                     ctx.fillText(anim.text, anim.x, anim.y);
                     ctx.restore();
@@ -452,9 +487,9 @@
 
                 if (this.isFirstBlock) {
                     this.currentBlock = {
-                        x: canvas.width / 2 - 51,
+                        x: canvas.width / 2 - 51,  // 102宽度对应的居中位置
                         y: 0,
-                        width: 102,
+                        width: 102,  // 明确设置第一块宽度
                         height: 60,
                         direction: 1,
                         image: 'train',
@@ -463,14 +498,14 @@
                     };
                     this.isFirstBlock = false;
                     this.isFalling = false;
-                    this.clickAllowed = false;
+                    this.clickAllowed = false; 
                     setTimeout(() => {
-                        this.clickAllowed = true;
+                        this.clickAllowed = true; 
                     }, this.clickDelay);
                     return;
                 }
 
-                const prefixes = ['A', 'B', 'C', 'D'];
+                const prefixes = ['JiaoQiu', 'FeiXiao'];
                 const selectedPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
 
                 const maxX = canvas.width - this.blockSize;
@@ -481,15 +516,15 @@
                     y: 0,
                     width: this.blockSize,
                     height: this.blockSize,
-                    direction: Math.random() > 0.5 ? 1 : -1,
+                    direction: Math.random() > 0.5? 1 : -1,
                     image: `${selectedPrefix}_01`,
                     prefix: selectedPrefix,
                     isTransitioning: false
                 };
                 this.isFalling = false;
-                this.clickAllowed = false;
+                this.clickAllowed = false; 
                 setTimeout(() => {
-                    this.clickAllowed = true;
+                    this.clickAllowed = true; 
                 }, this.clickDelay);
             },
 
@@ -513,7 +548,7 @@
 
                 const img = images[block.image];
                 if (img.complete) {
-                    ctx.globalAlpha = this.imageOpacity;
+                    ctx.globalAlpha = this.imageOpacity; 
                     ctx.drawImage(
                         img,
                         -block.width / 2,
@@ -529,9 +564,17 @@
                 if (this.gameOver || this.isFalling || this.isAnimating ||!this.currentBlock) return;
                 this.currentBlock.x += this.speed * this.currentBlock.direction;
 
-                if (this.currentBlock.x <= 0 ||
-                    this.currentBlock.x + this.blockSize >= canvas.width) {
+                // 根据方块类型动态获取宽度
+                const blockWidth = this.isFirstBlock ? 102 : this.blockSize;
+                const blockRight = this.currentBlock.x + blockWidth;
+
+                // 动态边界检测，修改为到达 320 立即反弹
+                if (this.currentBlock.x <= 0) {
                     this.currentBlock.direction *= -1;
+                    this.currentBlock.x = 0;
+                } else if (blockRight >= 400) { // 修改此处，将 canvas.width 替换为 320
+                    this.currentBlock.direction *= -1;
+                    this.currentBlock.x = 400 - blockWidth;
                 }
             },
 
@@ -563,7 +606,7 @@
 
                 const fall = () => {
                     if (!self.currentBlock) return;
-                    self.currentBlock.y += (window.innerWidth < 500 ? 12 : 5) / 2;
+                    self.currentBlock.y += (window.innerWidth < 500? 12 : 5) / 2; 
 
                     const landedOnGround = self.currentBlock.y + self.blockSize >= self.baseHeight;
                     let landedOnLast = false;
@@ -634,7 +677,7 @@
                         this.stack.forEach(block => {
                             const targetY = block.originalY + targetYDelta;
                             if (block.y < targetY) {
-                                block.y = Math.min(targetY, block.y + 15);
+                                block.y = Math.min(targetY, block.y + 15); 
                                 allDone = false;
                             }
                         });
@@ -643,9 +686,6 @@
                         } else {
                             this.isAnimating = false;
                             this.spawnNewBlock();
-                            if (this.backgroundOffsetY > 0) {
-                                this.backgroundOffsetY = Math.max(0, this.backgroundOffsetY - 5);
-                            }
                         }
                     };
                     this.stack.forEach(block => block.originalY = block.y);
@@ -672,6 +712,17 @@
                     const canvasRect = canvas.getBoundingClientRect();
                     const scaleX = canvas.width / canvasRect.width;
                     const scaleY = canvas.height / canvasRect.height;
+
+                    // 避免黄点闪现，注释掉绘制黄点的代码
+                    // ctx.fillStyle = 'gold';
+                    // ctx.beginPath();
+                    // ctx.arc(
+                    //     (finalX - canvasRect.left) * scaleX,
+                    //     (finalY - canvasRect.top) * scaleY,
+                    //     8 * window.devicePixelRatio,
+                    //     0, Math.PI * 2
+                    // );
+                    // ctx.fill();
                 }
             },
 
@@ -707,9 +758,10 @@
                 this.scoreAnimationCount = 0;
                 this.gameLoopRunning = true;
                 this.spawnNewBlock();
-                this.speed = window.innerWidth < 500? 5.5 : 1.5;
+                this.speed = localStorage.getItem('blockSpeed')? parseFloat(localStorage.getItem('blockSpeed')) : 1.5;
                 this.isFalling = false;
-                this.imageOpacity = 1;
+                this.backgroundOffsetY = 0; // 重置背景图偏移量
+                this.imageOpacity = 1; 
                 if (!isMuted && audio.bgm.paused) {
                     audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
                 }
@@ -723,45 +775,54 @@
                 }
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 if (images.background.complete) {
-                    ctx.drawImage(images.background, 0, -this.backgroundOffsetY);
+                    ctx.drawImage(
+                        images.background,
+                        0, 
+                        0, // 修改为固定位置
+                        canvas.width,
+                        canvas.height // 使用画布尺寸拉伸图片
+                    );
                 }
-                this.stack.forEach(b => this.drawBlock(b));
-                if (this.currentBlock) {
-                    this.update();
-                    this.drawBlock(this.currentBlock);
-                }
+
+                this.update();
                 this.updateScoreAnimations();
-
-                if (!this.gameOver) {
-                    this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
-                }
-
-                const backgroundBottom = canvas.height - images.background.height + this.backgroundOffsetY + images.background.height;
-                console.log(`背景图像底部位置: ${backgroundBottom}px`);
+                this.stack.forEach(block => this.drawBlock(block));
+                if (this.currentBlock) this.drawBlock(this.currentBlock);
+                
+                this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
             }
-        }
+        };  // ← Proper closure of game object
 
+        // Initialize game
+        game.init();
+
+        // 等待所有图片加载完成后执行
         Promise.all(Object.values(images).map(img => {
             return new Promise(resolve => {
                 if (img.complete) resolve();
-                img.onload = resolve;
+                img.onload = () => {
+                    resolve();
+                    // 当背景图片加载完成后，立即绘制
+                    if (img === images.background) {
+                        ctx.drawImage(images.background, 0, canvas.height - images.background.height);
+                    }
+                };
             });
         }))
            .then(() => {
                 document.getElementById('highscore').textContent = highScore;
-                game.gameLoop();
+                // 调用 init 方法初始化游戏
+                game.init();
             });
 
         canvas.addEventListener('click', () => game.dropBlock());
         document.getElementById('restartButton').addEventListener('click', function () {
-            // 点击开始按钮时隐藏使用说明窗口
-            const instructionWindow = document.getElementById('instructionWindow');
-            instructionWindow.style.display = 'none';
-
             if (!isMuted && audio.bgm.paused) {
                 audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
             }
             game.reset();
+            // 隐藏食用说明
+            document.getElementById('instructions').style.display = 'none';
         });
 
         document.getElementById('muteButton').addEventListener('click', function () {
@@ -773,6 +834,16 @@
             if (!isMuted && audio.bgm.paused) {
                 audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
             }
+        });
+
+        document.getElementById('speedButton').addEventListener('click', function () {
+            const speedSliderContainer = document.getElementById('speedSliderContainer');
+            speedSliderContainer.style.display = speedSliderContainer.style.display === 'none'? 'block' : 'none';
+        });
+
+        document.getElementById('speedSlider').addEventListener('input', function () {
+            game.speed = parseFloat(this.value);
+            localStorage.setItem('blockSpeed', this.value);
         });
 
         let touchStartY = 0;
@@ -787,84 +858,7 @@
                 game.dropBlock();
             }
         });
-
-        // 从本地存储中获取用户之前选择的速度档位
-        let speedLevel = localStorage.getItem('blockSpeedLevel') || 3;
-        game.speed = getSpeedByLevel(speedLevel);
-
-        // 根据速度档位返回对应的速度值
-        function getSpeedByLevel(level) {
-            switch (level) {
-                case '1': return 1; // 慢
-                case '2': return 2; // 中慢
-                case '3': return 3; // 中
-                case '4': return 4; // 中快
-                case '5': return 5; // 快
-                default: return 3;
-            }
-        }
-
-        // 速度按钮点击事件
-        document.getElementById('speedButton').addEventListener('click', function () {
-            const slider = document.getElementById('speedSlider');
-            slider.style.display = 'block';
-            slider.value = speedLevel;
-        });
-
-        // 速度滑块拖动事件
-        document.getElementById('speedSlider').addEventListener('input', function () {
-            speedLevel = this.value;
-            game.speed = getSpeedByLevel(speedLevel);
-            localStorage.setItem('blockSpeedLevel', speedLevel);
-        });
-
-        // 点击任意地方关闭速度滑块
-        document.addEventListener('click', function (e) {
-            const slider = document.getElementById('speedSlider');
-            const speedButton = document.getElementById('speedButton');
-            if (e.target!== speedButton && e.target!== slider) {
-                slider.style.display = 'none';
-            }
-        });
     </script>
-    <style>
-        /* 速度调整滑块样式 */
-        #speedSlider {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 75%;
-            height: 10px;
-            background: #d3d3d3;
-            outline: none;
-            opacity: 0.7;
-            -webkit-transition: .2s;
-            transition: opacity .2s;
-            position: relative; /* 添加定位属性 */
-            top: -100px; /* 向上移动 200px */
-        }
+</body>
 
-        #speedSlider:hover {
-            opacity: 1;
-        }
-
-        /* WebKit 内核浏览器滑块样式 */
-        #speedSlider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #75BCC3;
-            cursor: pointer;
-            border-radius: 50%;
-        }
-
-        /* Firefox 浏览器滑块样式 */
-        #speedSlider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: #75BCC3;
-            cursor: pointer;
-            border-radius: 50%;
-        }
-    </style>
 </html>
