@@ -706,6 +706,8 @@
                 this.baseHeight = 600;
                 this.scoreAnimationCount = 0;
                 this.gameLoopRunning = true;
+                // 重置背景位置
+                this.backgroundOffsetY = 2880;
                 this.spawnNewBlock();
                 this.speed = window.innerWidth < 500? 5.5 : 1.5;
                 this.isFalling = false;
