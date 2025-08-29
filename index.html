@@ -657,8 +657,14 @@
                 score += isPerfect? 20 : 10;
 
                 if (!isMuted) {
-                    audio.collision.currentTime = 0;
-                    audio.collision.play().catch(e => console.error("音效播放失败:", e));
+                    // 使用独立音频实例播放碰撞音效
+                    const collisionSound = new Audio('kwii.mp3');
+                    collisionSound.play().catch(e => console.error("音效播放失败:", e));
+                    
+                    // 同步背景音乐状态（移动端需要手动恢复）
+                    if (audio.bgm.paused) {
+                        audio.bgm.play().catch(e => console.error("背景音乐恢复失败:", e));
+                    }
                 }
 
                 this.createScoreAnimation(
