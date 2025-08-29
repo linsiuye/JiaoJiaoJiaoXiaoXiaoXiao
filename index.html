@@ -323,12 +323,138 @@
         const ctx = canvas.getContext('2d');
         let score = 0;
         let highScore = localStorage.getItem('blockHighScore') || 0;
-        const audio = {
-            bgm: new Audio('BGM.mp3'),
-            collision: new Audio('kwii.mp3')
-        };
-        audio.bgm.loop = true;
         let isMuted = false;
+        
+        // 使用Web Audio API管理音频
+        let audioContext;
+        let bgmBuffer;
+        let collisionBuffer;
+        let bgmSource = null;
+        let bgmGainNode;
+        let effectsGainNode;
+        
+        // 初始化Web Audio API
+        function initWebAudio() {
+            try {
+                // 创建音频上下文
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioContext = new AudioContext();
+                
+                // 创建增益节点（用于控制音量和静音）
+                bgmGainNode = audioContext.createGain();
+                effectsGainNode = audioContext.createGain();
+                
+                // 连接到输出
+                bgmGainNode.connect(audioContext.destination);
+                effectsGainNode.connect(audioContext.destination);
+                
+                // 加载音频文件
+                loadAudioBuffer('BGM.mp3', (buffer) => {
+                    bgmBuffer = buffer;
+                });
+                
+                loadAudioBuffer('kwii.mp3', (buffer) => {
+                    collisionBuffer = buffer;
+                });
+            } catch (e) {
+                console.error('Web Audio API不受支持:', e);
+                // 降级到HTML Audio API
+                fallbackToHtmlAudio();
+            }
+        }
+        
+        // 加载音频缓冲区
+        function loadAudioBuffer(url, callback) {
+            const request = new XMLHttpRequest();
+            request.open('GET', url, true);
+            request.responseType = 'arraybuffer';
+            
+            request.onload = function() {
+                audioContext.decodeAudioData(request.response, function(buffer) {
+                    if (callback) callback(buffer);
+                }, function(error) {
+                    console.error('音频解码错误:', error);
+                });
+            };
+            
+            request.send();
+        }
+        
+        // 播放背景音乐
+        function playBGM() {
+            if (!audioContext ||!bgmBuffer || isMuted) return;
+            
+            // 确保音频上下文是运行状态
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            // 停止当前正在播放的背景音乐
+            if (bgmSource) {
+                bgmSource.stop();
+                bgmSource.disconnect();
+            }
+            
+            // 创建新的音频源
+            bgmSource = audioContext.createBufferSource();
+            bgmSource.buffer = bgmBuffer;
+            bgmSource.loop = true;
+            
+            // 连接到增益节点并播放
+            bgmSource.connect(bgmGainNode);
+            bgmSource.start(0);
+        }
+        
+        // 播放碰撞音效
+        function playCollisionSound() {
+            if (!audioContext ||!collisionBuffer || isMuted) return;
+            
+            // 确保音频上下文是运行状态
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            // 创建新的音频源
+            const source = audioContext.createBufferSource();
+            source.buffer = collisionBuffer;
+            
+            // 连接到效果增益节点并播放
+            source.connect(effectsGainNode);
+            source.start(0);
+        }
+        
+        // 降级到HTML Audio API的方案
+        let fallbackAudio = null;
+        function fallbackToHtmlAudio() {
+            fallbackAudio = {
+                bgm: new Audio('BGM.mp3'),
+                collision: new Audio('kwii.mp3')
+            };
+            fallbackAudio.bgm.loop = true;
+            
+            // 重写音频控制函数以使用降级方案
+            window.playBGM = function() {
+                if (isMuted ||!fallbackAudio) return;
+                if (fallbackAudio.bgm.paused) {
+                    fallbackAudio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
+                }
+            };
+            
+            window.playCollisionSound = function() {
+                if (isMuted ||!fallbackAudio) return;
+                // 创建音效的新实例以避免中断
+                const collisionSound = new Audio('kwii.mp3');
+                collisionSound.play().catch(e => console.error("音效播放失败:", e));
+                
+                // 确保背景音乐继续播放
+                if (fallbackAudio.bgm.paused) {
+                    fallbackAudio.bgm.play().catch(e => console.error("背景音乐恢复失败:", e));
+                }
+            };
+        }
+        
+        // 初始化Web Audio API
+        initWebAudio();
 
         const images = {
             A_01: new Image(),
@@ -657,14 +783,8 @@
                 score += isPerfect? 20 : 10;
 
                 if (!isMuted) {
-                    // 使用独立音频实例播放碰撞音效
-                    const collisionSound = new Audio('kwii.mp3');
-                    collisionSound.play().catch(e => console.error("音效播放失败:", e));
-                    
-                    // 同步背景音乐状态（移动端需要手动恢复）
-                    if (audio.bgm.paused) {
-                        audio.bgm.play().catch(e => console.error("背景音乐恢复失败:", e));
-                    }
+                    // 播放碰撞音效，使用Web Audio API确保不中断背景音乐
+                    playCollisionSound();
                 }
 
                 this.createScoreAnimation(
@@ -718,8 +838,8 @@
                 this.speed = window.innerWidth < 500? 5.5 : 1.5;
                 this.isFalling = false;
                 this.imageOpacity = 1;
-                if (!isMuted && audio.bgm.paused) {
-                    audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
+                if (!isMuted) {
+                    playBGM();
                 }
                 this.gameLoop();
             },
@@ -762,26 +882,24 @@
 
         canvas.addEventListener('click', () => game.dropBlock());
         document.getElementById('restartButton').addEventListener('click', function () {
-            // 点击开始按钮时隐藏使用说明窗口
-            const instructionWindow = document.getElementById('instructionWindow');
-            instructionWindow.style.display = 'none';
+                // 点击开始按钮时隐藏使用说明窗口
+                const instructionWindow = document.getElementById('instructionWindow');
+                instructionWindow.style.display = 'none';
 
-            if (!isMuted && audio.bgm.paused) {
-                audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
-            }
-            game.reset();
-        });
+                if (!isMuted) {
+                    playBGM();
+                }
+                game.reset();
+            });
 
         document.getElementById('muteButton').addEventListener('click', function () {
-            isMuted =!isMuted;
-            audio.bgm.muted = isMuted;
-            audio.collision.muted = isMuted;
-            this.textContent = isMuted? '取消静音' : '静音';
+                isMuted =!isMuted;
+                this.textContent = isMuted? '取消静音' : '静音';
 
-            if (!isMuted && audio.bgm.paused) {
-                audio.bgm.play().catch(e => console.error("背景音乐播放失败:", e));
-            }
-        });
+                if (!isMuted) {
+                    playBGM();
+                }
+            });
 
         let touchStartY = 0;
         canvas.addEventListener('touchstart', (e) => {
